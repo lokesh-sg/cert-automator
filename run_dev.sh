@@ -5,10 +5,12 @@
 # This aligns file paths (certs/, backups/) with the Production structure.
 
 # 1. Activate Virtual Environment (if exists)
-if [ -f "dev/venv/bin/activate" ]; then
+if [ -f "dev/.venv_dev_stable/bin/activate" ]; then
+    source dev/.venv_dev_stable/bin/activate
+elif [ -f "dev/venv/bin/activate" ]; then
     source dev/venv/bin/activate
 else
-    echo "Warning: dev/venv not found. Ensure python dependencies are installed."
+    echo "Warning: No virtual environment found. Attempting to run with system python..."
 fi
 
 # 2. Set Environment Variables

@@ -128,16 +128,64 @@ class TrueNASHandler(CertificateHandler):
 
             # 5. Update GUI Certificate
             self.logger.info(f"Activating certificate {new_cert_id}...")
-            update_res = self._call(ws, "system.general.update", [{"ui_certificate": new_cert_id}])
+            update_res = False
+            try:
+                # This call often causes a connection drop as Nginx restarts
+                update_res = self._call(ws, "system.general.update", [{"ui_certificate": new_cert_id}])
+            except Exception as e:
+                if "closed" in str(e).lower() or "connection" in str(e).lower():
+                    self.logger.info("Connection dropped by TrueNAS during update call (Expected). Treating as tentative success.")
+                    update_res = True
+                else:
+                    raise e
             
-            # Use 'web.reload' or just wait? Usually changing cert restarts nginx automatically.
-            # But let's check result.
-            if update_res is None: # update returns config or None on error
-                 # Actually _call returns result or None. If update works it returns the config object.
+            if update_res:
+                self.logger.info("Certificate settings updated. Triggering UI restart to force Nginx reload...")
+                try:
+                    self._call(ws, "system.general.ui_restart")
+                except Exception as e:
+                    self.logger.info(f"UI Restart triggered (Expected connection drop): {e}")
+                
+                self.logger.info("Waiting 15 seconds for Nginx reload and GUI availability...")
+                time.sleep(15)
+                
+                # Re-connect and Re-verify activation (Best Effort)
+                try:
+                    ws_verify = create_connection(ws_url, sslopt={"cert_reqs": ssl.CERT_NONE, "check_hostname": False}, origin=f"https://{host}", timeout=10)
+                    self._call(ws_verify, "auth.login_with_api_key", [api_key])
+                    config_final = self._call(ws_verify, "system.general.config")
+                    if config_final and 'ui_certificate' in config_final:
+                        final_id = config_final['ui_certificate']
+                        if isinstance(final_id, dict): 
+                            final_name = final_id.get('name')
+                            final_id = final_id.get('id')
+                        else:
+                            final_name = "Unknown (ID Only)"
+                        
+                        if str(final_id) == str(new_cert_id) or final_name == cert_name:
+                            self.logger.info(f"Certificate {new_cert_id} ('{cert_name}') confirmed active on TrueNAS GUI.")
+                        else:
+                            self.logger.warning(f"Activation check mismatch. Expected ID {new_cert_id} ('{cert_name}'), found ID {final_id} ('{final_name}')")
+                    ws_verify.close()
+                except Exception as ve:
+                    self.logger.warning(f"Could not re-verify activation status (Expected if host is still restarting): {ve}")
+            else:
                  self.logger.error("Failed to activate certificate.")
                  return False
-                 
-            self.logger.info("Certificate activated.")
+
+            # 6. Delete Old Certificate
+            if old_cert_id and old_cert_id != new_cert_id:
+                # We need a new connection if the old one dropped
+                try:
+                     ws_del = create_connection(ws_url, sslopt={"cert_reqs": ssl.CERT_NONE, "check_hostname": False}, origin=f"https://{host}", timeout=10)
+                     self._call(ws_del, "auth.login_with_api_key", [api_key])
+                     self.logger.info(f"Deleting old certificate {old_cert_id}...")
+                     self._call(ws_del, "certificate.delete", [old_cert_id])
+                     ws_del.close()
+                except:
+                     self.logger.warning(f"Failed to delete old certificate {old_cert_id} (Host might still be reloading)")
+
+            return True
 
             # 6. Delete Old Certificate
             if old_cert_id and old_cert_id != new_cert_id:
@@ -201,7 +249,7 @@ class TrueNASHandler(CertificateHandler):
                 
                 # Poll for Job completion
                 new_cert_id = None
-                for i in range(15): # 30 seconds
+                for i in range(30): # 60 seconds
                     job_resp = requests.get(f"{base_url}/job/id/{job_id}", headers=headers, verify=False, timeout=5)
                     if job_resp.status_code == 200:
                         job_info = job_resp.json()
@@ -259,11 +307,51 @@ class TrueNASHandler(CertificateHandler):
             except:
                 pass
                 
-            self.logger.info(f"Activating certificate ID {new_cert_id}...")
+            self.logger.info(f"Activating certificate ID {new_cert_id} via REST...")
             update_resp = requests.put(f"{base_url}/system/general", headers=headers, json={"ui_certificate": new_cert_id}, verify=False, timeout=10)
-            if update_resp.status_code != 200:
+            
+            if update_resp.status_code == 200:
+                self.logger.info(f"Certificate settings updated (REST). Triggering UI restart...")
+                try:
+                    # Alternative for UI restart via REST if available
+                    requests.post(f"{base_url}/system/general/ui_restart", headers=headers, verify=False, timeout=5)
+                except:
+                    pass
+
+                self.logger.info(f"Waiting 15 seconds for reload...")
+                time.sleep(15)
+
+                # Re-verify
+                try:
+                    gen_check = requests.get(f"{base_url}/system/general", headers=headers, verify=False, timeout=10)
+                    if gen_check.status_code == 200:
+                        final_settings = gen_check.json()
+                        final_ui_cert = final_settings.get('ui_certificate')
+                        
+                        final_id = None
+                        final_name = None
+                        if isinstance(final_ui_cert, dict): 
+                            final_id = final_ui_cert.get('id')
+                            final_name = final_ui_cert.get('name')
+                        else:
+                            final_id = final_ui_cert
+
+                        if str(final_id) == str(new_cert_id) or final_name == cert_name:
+                            self.logger.info(f"Certificate {new_cert_id} ('{cert_name}') confirmed active on TrueNAS (REST check).")
+                        else:
+                            self.logger.warning(f"Activation verification mismatch (REST). Found {final_name or final_id}")
+                except Exception as re:
+                    self.logger.warning(f"REST re-verification failed (Host might be reloading): {re}")
+            else:
                 self.logger.error(f"Failed to activate. Status: {update_resp.status_code}, Body: {update_resp.text}")
                 return False
+
+            # 4. Delete Old
+            if old_cert_id and old_cert_id != new_cert_id:
+                self.logger.info(f"Deleting old certificate ID {old_cert_id}...")
+                requests.delete(f"{base_url}/certificate/id/{old_cert_id}", headers=headers, verify=False, timeout=10)
+
+            return True
 
             # 4. Delete Old
             if old_cert_id and old_cert_id != new_cert_id:

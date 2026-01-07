@@ -1,45 +1,31 @@
-from .base_handler import CertificateHandler
+from .base_ssh_handler import BaseSSHHandler
+import os
 
-class PortainerHandler(CertificateHandler):
+class PortainerHandler(BaseSSHHandler):
     def renew(self, cert_path: str, key_path: str) -> bool:
-        # Check if we have SSH info (preferred for Portainer since API renewal is limited)
+        ssh = self._get_ssh_connection()
+        if not ssh:
+            return False
+
+        remote_cert = self.config.get('remote_cert_path')
+        remote_key = self.config.get('remote_key_path')
         restart_cmd = self.config.get('restart_cmd')
-        if restart_cmd:
-            self.logger.info("Portainer: detected SSH config, using SSH to update certificates.")
-            from .ssh_helper import SSHHelper
-            
-            host = self.config.get('host')
-            user = self.config.get('user')
-            password = self.config.get('password')
-            remote_cert = self.config.get('remote_cert_path')
-            remote_key = self.config.get('remote_key_path')
-            
-            if not all([host, user, password, remote_cert, remote_key]):
-                self.logger.error("Portainer (SSH) missing required fields: host, user, password, paths.")
-                return False
-                
-            try:
-                # Password is passed as kwarg to avoid being treated as key_path
-                ssh = SSHHelper(host, user, password=password)
-                # Upload Cert
-                ssh.upload_file(cert_path, remote_cert)
-                self.logger.info(f"Uploaded certificate to {remote_cert}")
-                
-                # Upload Key
-                ssh.upload_file(key_path, remote_key)
-                self.logger.info(f"Uploaded private key to {remote_key}")
-                
-                # Restart
-                output = ssh.execute_command(restart_cmd)
-                self.logger.info(f"Restart command output: {output}")
-                return True
-                
-            except Exception as e:
-                self.logger.exception(f"Portainer SSH Renewal failed: {e}")
-                return False
+
+        self.logger.info(f"Uploading Portainer certificates to {self.config.get('host')}...")
         
-        self.logger.warning("Portainer API renewal is not fully implemented. Please configure SSH fields (User, Password, Paths) to update files directly.")
-        return False
+        # Determine base directory for ownership fix
+        target_dir = os.path.dirname(remote_cert)
+
+        # Upload Cert
+        if not self._upload_to_remote(ssh, cert_path, remote_cert, owner_reference_path=target_dir):
+            return False
+            
+        # Upload Key
+        if not self._upload_to_remote(ssh, key_path, remote_key, owner_reference_path=target_dir):
+            return False
+
+        # Restart
+        return self._restart_service(ssh, restart_cmd)
 
     def check_remote_expiry(self) -> dict:
         from .network_utils import check_ssl_expiry
@@ -148,36 +134,46 @@ class PortainerHandler(CertificateHandler):
             # Env parsing (some setups use environment variables?) -> Not standard Portainer CE but possible.
             
             if not internal_cert:
-                 # Logic for default/self-signed installations
-                 # Try to find where the current certs are (if any)
-                 # Portainer often stores them in /data/tls/cert.pem or /data/certs
+                 # Logic for default/self-signed installations or missing flags
+                 # Try to find exactly what Portainer is using by checking the filesystem inside the container
                  
                  # try to find /data mount
                  data_mount = next((m for m in data.get('Mounts', []) if m['Destination'] == '/data'), None)
                  
                  if data_mount:
-                     # Check if we can find default certs inside
-                     # We use 'ls' because 'find' might not be available in minimal image
-                     # Try standard locations
-                     possible_locations = ['/data/tls/cert.pem', '/data/certs/cert.pem', '/data/cert.pem']
+                     # Check if we can find certificates inside the container
+                     # Try both standard Portainer defaults and our previous 'portainer.crt' naming
+                     possible_locations = [
+                         '/data/tls/cert.pem', 
+                         '/data/certs/cert.pem', 
+                         '/data/cert.pem',
+                         '/data/certs/portainer.crt',
+                         '/data/portainer.crt'
+                     ]
                      
                      found_loc = None
                      for loc in possible_locations:
+                         # Use docker exec to check if file exists inside the container
                          s_chk, o_chk = ssh.execute_command(f"docker exec {container_id} ls {loc}")
-                         if s_chk:
+                         if s_chk and loc in o_chk:
                              found_loc = loc
                              break
                      
                      if found_loc:
                          internal_cert = found_loc
-                         # Usually key is next to it
-                         internal_key = found_loc.replace('cert.pem', 'key.pem')
+                         # Usually key is next to it with .key instead of .pem/.crt or similar naming
+                         if 'cert.pem' in found_loc:
+                             internal_key = found_loc.replace('cert.pem', 'key.pem')
+                         elif 'portainer.crt' in found_loc:
+                             internal_key = found_loc.replace('portainer.crt', 'portainer.key')
+                         else:
+                             # Generic fallback if we found something but naming is weird
+                             internal_key = found_loc.replace('.crt', '.key').replace('.pem', '.key')
                      else:
-                         # No default certs found on disk (maybe memory only?)
-                         # Fallback: Suggest a standardized path in the data volume
-                         # User will still need to add flags to use it, but at least we give them a valid path to upload to.
-                         internal_cert = "/data/certs/portainer.crt"
-                         internal_key = "/data/certs/portainer.key"
+                         # No certificates found on disk inside container.
+                         # Fallback to the most common Portainer default
+                         internal_cert = "/data/certs/cert.pem"
+                         internal_key = "/data/certs/key.pem"
                  else:
                      raise Exception("Container found, but no SSL flags AND no /data mount found. Cannot determine where to put certificates.")
 

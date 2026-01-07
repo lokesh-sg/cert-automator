@@ -102,8 +102,6 @@ class ArubaClearPassHandler(CertificateHandler):
                 
             port = 5050 # Hardcoded or config? default to 5050
             
-            port = 5050 # Hardcoded or config? default to 5050
-            
             # Append pseudo-filename for strict validators
             return f"http://{cb_host}:{port}/api/download/{token}/clearpass.pfx"
         except ImportError:

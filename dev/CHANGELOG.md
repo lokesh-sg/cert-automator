@@ -1,4 +1,19 @@
-# Changelog
+## [v1.1.0 Build 14] - 2026-01-07
+- **Feature (Portainer)**: Dynamic Path Detection. "Auto Detect" now inspects the container filesystem to identify active certificate filenames (`cert.pem`, `portainer.crt`, etc.).
+- **Bug Fix (Portainer)**: Resolved SSH "Permission denied" errors using a robust sudo fallback mechanism (via `/tmp`).
+- **Bug Fix (TrueNAS)**: Fixed GUI activation failure by adding an explicit UI restart (Nginx reload) after certificate updates.
+- **Improvement (TrueNAS)**: Enhanced activation verification to cross-check both certificate ID and Name.
+- **Cleanup**: Refactored `PortainerHandler` and `SyncthingHandler` for better consistency using `BaseSSHHandler`.
+- **UI**: Added help context and improved path pre-filling for SSH-based services.
+
+## [v1.1.0 Build 11] (Emergency Fix) - 2026-01-07
+- **Critical Fix**: Restored missing `system.general.update` calls in TrueNAS handler (regression from Build 10 plan).
+- **Improvement**: Added robust handling for "Connection Drop" during TrueNAS Nginx reloads. The handler now treats a connection loss immediately after activation as a tentative success.
+- **Improvement**: Added post-activation sleep and best-effort re-verification for TrueNAS.
+- **Improvement**: Enhanced Portainer restart logging with warnings for unstable ID-based commands.
+- **Bug Fix**: Improved TrueNAS activation reliability. Added a 10-second wait after certificate activation to ensure Nginx reloads correctly, followed by a verification check.
+- **Bug Fix**: Enhanced Portainer renewal with strict SSH upload verification. The handler now verifies that certificate and key files were successfully transferred before attempting a restart.
+- **Improvement**: Added detailed logging for restart command results in the Portainer handler.
 
 ## v1.1.0 Build 7
 - **Improvement**: Standardized Development Environment directory structure to match Production logic. Use `./run_dev.sh` to start the dev server.
@@ -26,7 +41,11 @@
 - **CVE Patching**: Dockerfile now includes `apt-get upgrade -y` to install latest Debian security patches.
 - **Supply Chain**: Added SBOM (Software Bill of Materials) and Provenance attestations to Docker images.
 
-## [1.1.0_build2] - 2026-01-06
+## [v1.1.0 Build 13] - 2026-01-07
+- **Feature**: Dynamic Portainer Path Detection. "Auto Detect" now inspects the container filesystem to identify the correct certificate filenames (`cert.pem`, `portainer.crt`, etc.).
+- **Improved**: Cleaned up `PortainerHandler.renew` to use configured paths instead of hardcoded overrides.
+
+## [v1.1.0 Build 12] - 2026-01-07
 ### Fixed
 - **UI Refresh**: Fixed "Renew All" button not automatically refreshing health/status badges upon completion.
 - **Timestamps**: Corrected "NaNs ago" display issue by improving timezone parsing logic in `index.html`.
