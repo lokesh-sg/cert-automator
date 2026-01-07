@@ -1,4 +1,4 @@
-# CertAutomator 🚀🔒
+# CertAutomator 🔒
 
 **The Centralized "Vault" that Solves the Pain of Certificate Renewals.**
 
