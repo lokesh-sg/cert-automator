@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  cert-automator:
+    image: cert-automator:latest
+    container_name: cert-automator
+    restart: unless-stopped
+    ports:
+      - "5050:5050"
+    volumes:
+      - /data/cert-automator/config.yaml:/app/config.yaml
+      - /data/cert-automator/auth.json:/app/auth.json
+      - /data/cert-automator/certs:/certs
+      - /data/cert-automator/backup:/backup
+      - /data/cert-automator/logs:/app/logs
+    environment:
+      - CONFIG_PATH=/app/config.yaml
+      - CERT_DIR=/certs
+      - BACKUP_DIR=/backup
+      - FLASK_SECRET=GenerateYourOwnSecretHere
+      - LOG_FILE=/app/logs/cert_automate.log
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5050/api/health" ]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+    network_mode: bridge

@@ -1,0 +1,41 @@
+# OS & System
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Build Artifacts & Large Files
+*.tar
+*.zip
+*.gz
+*.log
+dist/*.tar
+cert_automate_*.zip
+
+# Directories to Ignore
+backup/
+code_backup/
+input_certificates/
+prod/
+# We ignore prod/ as dev/ is the source of truth
+
+# Secrets & Local Config (IMPORTANT)
+auth.json
+config.yaml
+certs/
+app/auth.json
+app/config.yaml
+dev/app/auth.json
+dev/app/config.yaml

@@ -1,0 +1,24 @@
+
+        async function populatePackSelect(currentValue) {
+            const select = document.getElementById('config-cert-pack');
+            if (!select) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/certificates`);
+                const data = await res.json();
+                
+                select.innerHTML = '<option value="default">Default (config.yaml)</option>';
+
+                if (data.packs && Array.isArray(data.packs)) {
+                    data.packs.forEach(pack => {
+                        const opt = document.createElement('option');
+                        opt.value = pack;
+                        opt.innerText = pack;
+                        if (pack === currentValue) opt.selected = true;
+                        select.appendChild(opt);
+                    });
+                }
+            } catch (e) {
+                console.error("Failed to fetch cert packs", e);
+            }
+        }

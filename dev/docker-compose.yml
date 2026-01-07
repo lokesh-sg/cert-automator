@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  cert-automator:
+    build: .
+    container_name: cert-automator-dev
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ../input_certificates:/certs
+      - ../backup:/backup
+    environment:
+      - CONFIG_PATH=/app/config.yaml
+      - CERT_DIR=/certs
+      - BACKUP_DIR=/backup
+      - FLASK_SECRET=change-me-in-prod
+      # Mount SSH keys if using SSH handlers
+      # - ~/.ssh:/root/.ssh:ro 
+    command: [] # No args needed for server
+    ports:
+      - "5050:5050"
+    network_mode: bridge # Bridge mode is safer for port mapping consistency

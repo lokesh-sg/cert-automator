@@ -1,0 +1,10 @@
+requests
+paramiko
+docker
+pyyaml
+cryptography
+flask
+flask-cors
+websocket-client>=1.6.0
+Flask-WTF
+gunicorn
