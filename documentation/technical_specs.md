@@ -6,7 +6,7 @@
 
 ## 1. Project Structure
 ```text
-/Volumes/Downloads/cert-automate/
+/cert-automate/
 ├── dev/                     # Development Source
 │   ├── app/
 │   │   ├── static/          # CSS/JS
