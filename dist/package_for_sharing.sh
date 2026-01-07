@@ -12,12 +12,12 @@ echo -e "${BLUE}🚀 Starting CertAutomator Packaging...${NC}"
 
 # 1. Build and Export AMD64 (Intel/AMD)
 echo -e "${BLUE}🔨 Step 1: Building image for AMD64 (Intel/AMD)...${NC}"
-docker buildx build --platform linux/amd64 -t cert-automator:amd64 --load .
+docker buildx build --platform linux/amd64 -t cert-automator:amd64 --load ./prod
 docker save cert-automator:amd64 > cert-automator-amd64.tar
 
 # 2. Build and Export ARM64 (Apple Silicon/Raspberry Pi)
 echo -e "${BLUE}🔨 Step 2: Building image for ARM64 (Apple Silicon/ARM)...${NC}"
-docker buildx build --platform linux/arm64 -t cert-automator:arm64 --load .
+docker buildx build --platform linux/arm64 -t cert-automator:arm64 --load ./prod
 docker save cert-automator:arm64 > cert-automator-arm64.tar
 
 if [ $? -eq 0 ]; then

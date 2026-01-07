@@ -6,6 +6,15 @@
 - **CVE Patching**: Dockerfile now includes `apt-get upgrade -y` to install latest Debian security patches.
 - **Supply Chain**: Added SBOM (Software Bill of Materials) and Provenance attestations to Docker images.
 
+## [1.1.0_build2] - 2026-01-06
+### Fixed
+- **UI Refresh**: Fixed "Renew All" button not automatically refreshing health/status badges upon completion.
+- **Timestamps**: Corrected "NaNs ago" display issue by improving timezone parsing logic in `index.html`.
+- **UI Bug**: Fixed individual "Renew" button failure caused by missing DOM element ID.
+
+### Added
+- **Live Timers**: "Last Renewal" timestamp now updates dynamically (ticks every 10s) without requiring a page refresh.
+
 ### Production Readiness
 - **WSGI Server**: Replaced Flask development server with Gunicorn (Green Unicorn) for production-grade performance and stability.
 - **Config**: Gunicorn configured with 4 threads and 1 worker (to maintain scheduler integrity).

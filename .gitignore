@@ -26,6 +26,7 @@ cert_automate_*.zip
 
 # Directories to Ignore
 backup/
+dev/backups/
 code_backup/
 input_certificates/
 prod/
@@ -44,3 +45,4 @@ dev/app/config.yaml
 documentation/product_vision.md
 documentation/project_standards.md
 implementation_plan*.md
+dist/LINKEDIN_DRAFT.md

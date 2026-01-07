@@ -458,7 +458,7 @@
                     const time = timeAgo(s.last_run);
                     const msg = s.message || s.status;
                     renewalHtml = `<span title="${msg}" style="color:${color}; cursor:help; font-size: 0.9rem;">
-                        ${icon} ${time}
+                        ${icon} <span class="live-timer" data-ts="${s.last_run}">${time}</span>
                     </span>`;
                 }
 
@@ -466,7 +466,7 @@
                 let healthHtml = `<span id="status-${svc.name}" class="status-badge pending">Pending</span>`;
                 // Health Status Logic (Split into Local and Remote)
                 let localHealthHtml = `<span class="status-badge pending">Unknown</span>`;
-                let remoteHealthHtml = `<span class="status-badge pending">Unknown</span>`;
+                let remoteHealthHtml = `<span id="status-${svc.name}" class="status-badge pending">Unknown</span>`;
 
                 // 1. Local Health (System Pack)
                 if (svc.health_status) {
@@ -488,7 +488,7 @@
                     else if (s.days_remaining <= 30) badgeClass = 'warning';
                     else badgeClass = 'success';
 
-                    remoteHealthHtml = `<span class="status-badge ${badgeClass}" title="Deployed SSL: Expires in ${s.days_remaining} days">${s.days_remaining}d</span>`;
+                    remoteHealthHtml = `<span id="status-${svc.name}" class="status-badge ${badgeClass}" title="Deployed SSL: Expires in ${s.days_remaining} days">${s.days_remaining}d</span>`;
                 }
 
                 healthHtml = `
@@ -650,10 +650,15 @@
             renewAllBtn.innerHTML = "Renewing...";
             try {
                 await secureFetch(`${API_BASE}/renew/all`, { method: 'POST' });
-                setTimeout(fetchStatus, 1000);
-            } catch (e) { console.error(e); }
-            renewAllBtn.disabled = false;
-            renewAllBtn.innerHTML = '<span class="icon">⚡</span> Renew All';
+                showToast("Renew All Sequence Completed", "success");
+                await fetchStatus(); // Immediate Refresh
+            } catch (e) {
+                console.error(e);
+                showToast("Renewal Error: " + e, "error");
+            } finally {
+                renewAllBtn.disabled = false;
+                renewAllBtn.innerHTML = '<span class="icon">⚡</span> Renew All';
+            }
         };
 
         async function fetchLogs() {
@@ -799,10 +804,25 @@
         }
 
         function timeAgo(dateString) {
-            if (!dateString) return 'Never';
-            const date = new Date(dateString + "Z"); // Assume UTC
+            if (!dateString || dateString === 'None') return 'Never';
+
+            let date = new Date(dateString);
+
+            // If invalid, try appending Z (assuming it was naive UTC)
+            if (isNaN(date.getTime())) {
+                date = new Date(dateString + "Z");
+            }
+
+            // Still invalid?
+            if (isNaN(date.getTime())) return 'Never'; // Fallback
+
+
+
             const now = new Date();
             const seconds = Math.floor((now - date) / 1000);
+
+            // Future date check
+            if (seconds < 0) return "Just now";
 
             let interval = seconds / 31536000;
             if (interval > 1) return Math.floor(interval) + "y ago";
@@ -2021,6 +2041,16 @@
         // Manual Close Bindings
         document.getElementById('close-details-modal').onclick = () => document.getElementById('details-modal').classList.add('hidden');
         document.getElementById('close-details-btn').onclick = () => document.getElementById('details-modal').classList.add('hidden');
+
+        function updateTimers() {
+            document.querySelectorAll('.live-timer').forEach(el => {
+                const ts = el.getAttribute('data-ts');
+                if (ts) {
+                    el.innerText = timeAgo(ts);
+                }
+            });
+        }
+        setInterval(updateTimers, 10000); // Update every 10 seconds
 
         init();
     </script>

@@ -11,6 +11,11 @@ CertAutomator is a powerful, secure, and user-friendly web application designed 
 
 ---
 
+## 🌟 New in v1.1.0
+- **⚡ Live Timers**: Watch your renewal timestamps tick in real-time.
+- **🛡️ Secure by Default**: Now runs strictly as non-root (UID 1000) with Gunicorn for production robustness.
+- **🩹 Auto-Refresh**: UI automatically updates health status after renewal campaigns.
+
 ## 🌟 Key Features
 
 ### 🛡️ Secure by Design
