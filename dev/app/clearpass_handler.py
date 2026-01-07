@@ -87,8 +87,12 @@ class ArubaClearPassHandler(CertificateHandler):
             if not hasattr(current_app, 'temp_registry'):
                 current_app.temp_registry = {}
             
+            import time
             token = str(uuid.uuid4())
-            current_app.temp_registry[token] = {'path': file_path}
+            current_app.temp_registry[token] = {
+                'path': file_path,
+                'expires': time.time() + 600 # 10 mins expiry
+            }
             
             # Determine callback IP
             # Prefer config 'callback_host' -> local IP

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0_build4] - 2026-01-06
+### Fixed
+- **ClearPass Renewal**: Resolved `422 Unprocessable Entity` and `404 Not Found` errors.
+    - Reverted to URL-based callback method for reliability.
+    - Whitelisted `/api/download` endpoint in global security middleware to prevent `401 Unauthorized`.
+    - Added mandatory expiry timestamp to temporary download tokens to satisfy new security constraints.
+
 ## [1.1.0] - 2026-01-06
 ### Security Hardening (Docker Scout Policy Compliance)
 - **Non-Root User**: Container now runs as `appuser` (UID 1000) instead of root, enforcing least privilege permissions.

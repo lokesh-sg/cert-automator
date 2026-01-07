@@ -2,6 +2,10 @@
 
 All notable changes to the "Certificate Automation Tool" will be documented in this file.
 
+## [1.1.0_build4] - 2026-01-06
+### Fixed
+- **ClearPass Renewal**: Fixed critical renewal failure (422/404) by adjusting security middleware to safely allow certificate downloads via one-time tokens.
+
 ## [1.1.0_build2] - 2026-01-06
 ### Fixed
 - **UI Refresh**: Fixed "Renew All" button not automatically refreshing health/status badges upon completion.

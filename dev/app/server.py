@@ -72,7 +72,7 @@ root_logger.setLevel(logging.INFO)
 @app.before_request
 def check_auth():
     # Only allow static assets and core login/setup flow without auth
-    WHITELIST = ['login', 'setup', 'do_login', 'do_setup', 'health_check']
+    WHITELIST = ['login', 'setup', 'do_login', 'do_setup', 'health_check', 'download_temp_file']
     if request.path.startswith('/static') or request.endpoint in WHITELIST:
         return
     

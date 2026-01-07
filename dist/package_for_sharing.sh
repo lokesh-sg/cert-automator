@@ -46,7 +46,7 @@ if [[ "$PUSH_CHOICE" == "y" || "$PUSH_CHOICE" == "Y" ]]; then
         docker buildx build --platform linux/amd64,linux/arm64 \
           --attest type=provenance,mode=max \
           --attest type=sbom \
-          -t "$REPO_NAME:latest" --push .
+          -t "$REPO_NAME:latest" --push ./prod
         
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}✅ Successfully pushed multi-arch image to $REPO_NAME${NC}"
