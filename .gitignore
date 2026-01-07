@@ -39,3 +39,8 @@ app/auth.json
 app/config.yaml
 dev/app/auth.json
 dev/app/config.yaml
+
+# Internal Documentation (Not for Public)
+documentation/product_vision.md
+documentation/project_standards.md
+implementation_plan*.md
