@@ -41,9 +41,11 @@ graph TD
     - **Polymorphism**: The controller does not need to know *how* a service renews, only that it *can*.
 
 ## 4. Security Considerations
-- **Credential Isolation**: Credentials are stored in `config.yaml` (mapped volume). Using Docker secrets or Environment variables is the recommended upgrade path for v2.0.
+- **Encrypted Storage**: Credentials in `config.yaml` are encrypted at rest using Fernet symmetric encryption (AES-128), protected by a master password.
+- **Least Privilege**: The container runs as a non-root user (`appuser`, UID 1000) to minimize attack surface.
+- **Production Hardened**: Uses Gunicorn (WSGI) interface and strict input validation to prevent directory traversal attacks.
 - **SSH Keys**: Uses standard RSA keys for SSH access, avoiding password usage where possible.
-- **TLS verification**: Defaults to strictly checking, but permits `verify=False` for self-hosted intranet services (configurable).
+- **TLS Verification**: Defaults to strict checking, but permits `verify=False` for self-hosted intranet services.
 
 ## 5. Deployment & Build Pipeline
 - **Dev/Prod Parity**: The `dev` folder is the source of truth.
