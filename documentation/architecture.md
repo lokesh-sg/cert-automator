@@ -11,7 +11,7 @@ The system follows a **Controller-Adapter** pattern encapsulated within a **Dock
 graph TD
     User[User / Admin] -->|HTTP/Web| WebUI[Web Dashboard]
     WebUI -->|REST API| Flask[Flask Backend Controller]
-    Flask -->|Load| Config[Config Manager (YAML)]
+    Flask -->|Load| Config["Config Manager (YAML)"]
     Flask -->|Instantiate| Factory[Handler Factory]
     
     subgraph Service Handlers
