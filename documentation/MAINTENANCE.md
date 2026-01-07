@@ -25,9 +25,13 @@ CertAutomator is designed to be easily updated without losing your configuration
 
 ---
 
-## 💾 Data Persistence
+## 💾 Data Persistence & Permissions
 
-All critical data is stored in **Docker Volumes** on your host machine. This means your data survives even if the container is deleted or updated.
+All critical data is stored in **Docker Volumes** on your host machine.
+
+> [!IMPORTANT]
+> **UID 1000 Requirement**: The container runs as a secure non-root user (`appuser`, UID 1000). Ensure your host volumes are owned by this user:
+> `chown -R 1000:1000 ./app ./certs ./backup`
 
 | File/Folder | Purpose | Host Location (Default) |
 | :--- | :--- | :--- |

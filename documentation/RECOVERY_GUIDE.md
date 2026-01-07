@@ -60,8 +60,9 @@ To move your setup from a development machine to a production server:
     - `dev/auth.json`
     - `dev/config.yaml`
     - `dev/certs/` (The whole folder)
-3.  **Place them** in your production `app/` and `certs/` directories respectively.
-4.  **Ensure `FLASK_SECRET`** is set in your production `docker-compose.yml`.
+3.  **Place them** in your production mapped directories (e.g., `./app/` and `./certs/`).
+4.  **Fix Permissions**: Run `chown -R 1000:1000 ./app ./certs`.
+5.  **Ensure `FLASK_SECRET`** is set in your production `docker-compose.yml`.
 
 ---
 

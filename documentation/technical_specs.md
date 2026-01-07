@@ -1,7 +1,7 @@
 # Technical Specifications - Certificate Automation Tool
 
-**Version**: 1.0  
-**Date**: 2026-01-02  
+**Version**: 1.1.0
+**Date**: 2026-01-06
 **Author**: Development Team
 
 ## 1. Project Structure
@@ -11,11 +11,12 @@
 │   ├── app/
 │   │   ├── static/          # CSS/JS
 │   │   ├── templates/       # HTML
-│   │   ├── server.py        # Flask Entrypoint
+│   │   ├── server.py        # Flask App
+│   │   ├── wsgi.py          # Production Entrypoint
 │   │   ├── cert_manager.py  # Logic Core
 │   │   └── *_handler.py     # Service Adapters
 │   ├── config.yaml          # Service Configuration
-│   ├── Dockerfile           # Multi-stage build (slim)
+│   ├── Dockerfile           # Multi-stage build (Non-root, Gunicorn)
 │   └── docker-compose.yml   # Orchestration
 ├── prod/                    # Stable Deployment Target
 ├── code_backup/             # Unzipped archives of previous builds
@@ -79,7 +80,9 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r dev/app/requirements.txt
 export CONFIG_PATH=dev/config.yaml
-python -m app.server
+
+# Run with Gunicorn (Production Parity)
+gunicorn -w 1 --threads 4 -b 0.0.0.0:5050 app.server:app
 ```
 
 ### Production Build
