@@ -31,7 +31,7 @@ def increment_build(version):
     return version
 
 def copy_source(version, source_path, output_dir):
-    ver_str = f"v{version['major']}.{version['minor']}.{version.get('patch', 0)} Build {version['last_date']}.{version['daily_build']:02d}"
+    ver_str = f"v{version['major']}.{version['minor']}.{version.get('patch', 0)}.{version['last_date']}.{version['daily_build']:02d}"
     dest_path = os.path.join(output_dir, f"cert_automate_{ver_str}")
     
     if os.path.exists(dest_path):
@@ -53,7 +53,7 @@ def main():
     new_version = increment_build(version)
     save_version(new_version)
     
-    ver_str = f"v{new_version['major']}.{new_version['minor']}.{new_version.get('patch', 0)} Build {new_version['last_date']}.{new_version['daily_build']:02d}"
+    ver_str = f"v{new_version['major']}.{new_version['minor']}.{new_version.get('patch', 0)}.{new_version['last_date']}.{new_version['daily_build']:02d}"
     print(f"Build version: {ver_str}")
 
     # 2. Archive to /code_backup (Unzipped)

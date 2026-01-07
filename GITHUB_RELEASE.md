@@ -1,4 +1,4 @@
-# v1.1.0 Build 20260107.15 🚀
+# v1.1.0.20260107.16 🚀
 
 This release brings significant improvements to **Portainer** and **TrueNAS** integrations, focusing on smarter automation, improved security, and more robust certificate activation.
 
