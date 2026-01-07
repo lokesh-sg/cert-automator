@@ -1,4 +1,4 @@
-## [v1.1.0 Build 14] - 2026-01-07
+## [v1.1.0 Build 20260107.15] - 2026-01-07
 - **Feature (Portainer)**: Dynamic Path Detection. "Auto Detect" now inspects the container filesystem to identify active certificate filenames (`cert.pem`, `portainer.crt`, etc.).
 - **Bug Fix (Portainer)**: Resolved SSH "Permission denied" errors using a robust sudo fallback mechanism (via `/tmp`).
 - **Bug Fix (TrueNAS)**: Fixed GUI activation failure by adding an explicit UI restart (Nginx reload) after certificate updates.

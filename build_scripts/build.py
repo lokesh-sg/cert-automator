@@ -13,18 +13,25 @@ def load_version():
     if os.path.exists(VERSION_FILE):
         with open(VERSION_FILE, 'r') as f:
             return json.load(f)
-    return {"major": 1, "minor": 0, "build": 0}
+    return {"major": 1, "minor": 1, "patch": 0, "last_date": "", "daily_build": 0}
 
 def save_version(version):
     with open(VERSION_FILE, 'w') as f:
         json.dump(version, f, indent=4)
 
 def increment_build(version):
-    version['build'] += 1
+    today = datetime.datetime.now().strftime("%Y%m%d")
+    
+    if version.get('last_date') == today:
+        version['daily_build'] += 1
+    else:
+        version['last_date'] = today
+        version['daily_build'] = 1
+        
     return version
 
 def copy_source(version, source_path, output_dir):
-    ver_str = f"v{version['major']}.{version['minor']}.0 Build {version['build']}"
+    ver_str = f"v{version['major']}.{version['minor']}.{version.get('patch', 0)} Build {version['last_date']}.{version['daily_build']:02d}"
     dest_path = os.path.join(output_dir, f"cert_automate_{ver_str}")
     
     if os.path.exists(dest_path):
@@ -36,7 +43,7 @@ def copy_source(version, source_path, output_dir):
 def deploy_to_prod(source_path, prod_path):
     if os.path.exists(prod_path):
         shutil.rmtree(prod_path)
-    shutil.copytree(source_path, prod_path, ignore=shutil.ignore_patterns('__pycache__', '*.pyc', 'venv', '.DS_Store'))
+    shutil.copytree(source_path, prod_path, ignore=shutil.ignore_patterns('__pycache__', '*.pyc', 'venv', '.DS_Store', 'auth.json', 'config.yaml', 'logs'))
 
 def main():
     print("Starting package process...")
@@ -46,7 +53,7 @@ def main():
     new_version = increment_build(version)
     save_version(new_version)
     
-    ver_str = f"v{new_version['major']}.{new_version['minor']}.0 Build {new_version['build']}"
+    ver_str = f"v{new_version['major']}.{new_version['minor']}.{new_version.get('patch', 0)} Build {new_version['last_date']}.{new_version['daily_build']:02d}"
     print(f"Build version: {ver_str}")
 
     # 2. Archive to /code_backup (Unzipped)
