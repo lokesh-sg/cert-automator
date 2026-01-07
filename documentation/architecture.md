@@ -17,13 +17,13 @@ graph TD
     subgraph Service Handlers
     Factory -->|Create| H1[Proxmox Handler]
     Factory -->|Create| H2[TrueNAS Handler]
-    Factory -->|Create| H3[SSH Handler (Generic)]
+    Factory -->|Create| H3["SSH Handler (Generic)"]
     Factory -->|Create| H4[PFX Converter]
     end
     
     H1 -->|HTTPS/API| Ext1[Proxmox Node]
     H2 -->|HTTPS/API| Ext2[TrueNAS Scale]
-    H3 -->|SCP/SSH| Ext3[Linux Hosts (Wazuh, Syncthing)]
+    H3 -->|SCP/SSH| Ext3["Linux Hosts (Wazuh, Syncthing)"]
     H4 -->|File IO| Local[Local Filesystem]
 ```
 
