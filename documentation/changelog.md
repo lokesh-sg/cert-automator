@@ -2,6 +2,27 @@
 
 All notable changes to the "Certificate Automation Tool" will be documented in this file.
 
+## [1.1.0_build2] - 2026-01-06
+### Fixed
+- **UI Refresh**: Fixed "Renew All" button not automatically refreshing health/status badges upon completion.
+- **Timestamps**: Corrected "NaNs ago" display issue by improving timezone parsing logic in `index.html`.
+- **UI Bug**: Fixed individual "Renew" button failure caused by missing DOM element ID.
+
+### Added
+- **Live Timers**: "Last Renewal" timestamp now updates dynamically (ticks every 10s) without requiring a page refresh.
+
+## [1.1.0] - 2026-01-06
+### Security Hardening (Docker Scout Policy Compliance)
+- **Non-Root User**: Container now runs as `appuser` (UID 1000) instead of root, enforcing least privilege permissions.
+- **CVE Patching**: Dockerfile now includes `apt-get upgrade -y` to install latest Debian security patches.
+- **Supply Chain**: Added SBOM (Software Bill of Materials) and Provenance attestations to Docker images.
+
+### Production Readiness
+- **WSGI Server**: Replaced Flask development server with Gunicorn (Green Unicorn) for production-grade performance and stability.
+- **Config**: Gunicorn configured with 4 threads and 1 worker (to maintain scheduler integrity).
+- **Health Checks**: Added `curl` to the image to support Docker health check probes.
+- **Documentation**: Updated READMEs with crucial `chown 1000:1000` volume permission instructions for non-root deployment.
+
 ## [v1.0_build18] - 2026-01-06
 ### Added
 - **Lifecycle Management**: Created `MAINTENANCE.md` covering Docker upgrade procedures, configuration persistence through volume mounts, and automatic backup policies.
