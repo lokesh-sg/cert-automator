@@ -6,7 +6,7 @@ services:
     container_name: cert-automator-dev
     volumes:
       - ./config.yaml:/app/config.yaml
-      - ../input_certificates:/certs
+      - ../certs:/certs
       - ../backup:/backup
     environment:
       - CONFIG_PATH=/app/config.yaml

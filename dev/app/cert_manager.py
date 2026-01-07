@@ -156,7 +156,13 @@ class CertManager:
             return {"success": False, "message": "Service not found"}
 
         # Get Cert Pack (Default to cleanup global if None)
-        cert_pack = target.get('cert_pack')
+        # Fix: Frontend sends 'cert_pack_id', Backend Legacy used 'cert_pack'
+        cert_pack = target.get('cert_pack_id') or target.get('cert_pack')
+        
+        if cert_pack:
+             self.logger.info(f"Renewing {service_name} using Cert Pack: {cert_pack}")
+        else:
+             self.logger.info(f"Renewing {service_name} using Default Cert Pack")
         
         if not self.validate_certs(cert_pack):
             return {"success": False, "message": f"Certificates not found for pack: {cert_pack or 'Default'}"}
@@ -307,7 +313,8 @@ class CertManager:
                 name = svc.get('name')
                 
                 # 1. Local Check
-                pack = svc.get('cert_pack')
+                pack = svc.get('cert_pack_id') or svc.get('cert_pack')
+                cert_path, _ = self.get_cert_paths(pack)
                 cert_path, _ = self.get_cert_paths(pack)
                 
                 status = {
@@ -366,7 +373,8 @@ class CertManager:
         # Check if at least one service has a valid cert file
         # This is a loose check for the dashboard badge
         for svc in services:
-             pack = svc.get('cert_pack')
+             pack = svc.get('cert_pack_id') or svc.get('cert_pack')
+             path, _ = self.get_cert_paths(pack)
              path, _ = self.get_cert_paths(pack)
              if os.path.exists(path): return True
         return False

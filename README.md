@@ -1,4 +1,4 @@
-# CertAutomator 🔒
+# CertAutomator 🚀🔒
 
 **The Centralized "Vault" that Solves the Pain of Certificate Renewals.**
 
@@ -83,6 +83,12 @@ Since CertAutomator runs as a secure non-root user (**UID 1000**), you must ensu
 # Set ownership to appuser (1000:1000)
 chown -R 1000:1000 config.yaml auth.json certs backup logs
 ```
+
+### 2. Initialize & Launch
+```bash
+# Create persistent storage files
+touch config.yaml auth.json
+mkdir -p certs backup logs
 
 # Fire it up
 docker compose up -d

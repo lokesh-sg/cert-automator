@@ -36,7 +36,7 @@ CONFIG_PATH = os.getenv('CONFIG_PATH', 'config.yaml')
 CERT_DIR = os.getenv('CERT_DIR', 'certs') # Use relative 'certs' for local development
 BACKUP_DIR = os.getenv('BACKUP_DIR', 'backups') # Default relative backups
 LOG_FILE = "cert_automate.log"
-AUTH_FILE = "auth.json" # Stores username
+AUTH_FILE = os.getenv('AUTH_PATH', 'auth.json') # Stores username
 
 def get_version():
     ver = "Dev Mode"

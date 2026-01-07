@@ -39,14 +39,26 @@ if [[ "$PUSH_CHOICE" == "y" || "$PUSH_CHOICE" == "Y" ]]; then
         echo -e "${BLUE}❌ Repository name cannot be empty. Skipping push.${NC}"
     else
         echo -e "${BLUE}🚀 Step 3: Building and Pushing Universal Image to $REPO_NAME...${NC}"
+        
+        # Extract Version
+        MAJOR=$(grep -o '"major": [0-9]*' build_scripts/version_info.json | awk '{print $2}')
+        MINOR=$(grep -o '"minor": [0-9]*' build_scripts/version_info.json | awk '{print $2}')
+        BUILD=$(grep -o '"build": [0-9]*' build_scripts/version_info.json | awk '{print $2}')
+        VERSION_TAG="v${MAJOR}.${MINOR}.0_build${BUILD}"
+        
+        echo -e "${BLUE}🏷️  Tags: latest, ${VERSION_TAG}${NC}"
+
         # Setting up builder if not already set
         docker buildx create --name cert-builder --use 2>/dev/null || docker buildx use cert-builder
+
         
         # Build and Push multi-arch directly to registry
         docker buildx build --platform linux/amd64,linux/arm64 \
           --attest type=provenance,mode=max \
           --attest type=sbom \
-          -t "$REPO_NAME:latest" --push ./prod
+          -t "$REPO_NAME:latest" \
+          -t "$REPO_NAME:$VERSION_TAG" \
+          --push ./prod
         
         if [ $? -eq 0 ]; then
             echo -e "${GREEN}✅ Successfully pushed multi-arch image to $REPO_NAME${NC}"

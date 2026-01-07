@@ -27,10 +27,16 @@ cert_automate_*.zip
 # Directories to Ignore
 backup/
 dev/backups/
+backups/
 code_backup/
-input_certificates/
-prod/
-# We ignore prod/ as dev/ is the source of truth
+
+# Prod Specific Ignores (Allow structure, ignore data)
+prod/app/
+prod/certs/
+prod/backup/
+prod/logs/
+prod/auth.json
+prod/config.yaml
 
 # Secrets & Local Config (IMPORTANT)
 auth.json

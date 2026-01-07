@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.1.0 Build 7
+- **Improvement**: Standardized Development Environment directory structure to match Production logic. Use `./run_dev.sh` to start the dev server.
+- **Cleanup**: Removed redundant `input_certificates` directory. Certificates are now unified in `certs/` (Project Root).
+- **Fix**: Resolved `auth.json` and `config.yaml` path resolution issues in Dev mode.
+
+## v1.1.0 Build 6
+- **Bug Fix**: Fixed an issue where selecting a custom Certificate Pack in the service editor was ignored during renewal (Backend expected `cert_pack`, Frontend sent `cert_pack_id`).
+- **Improvement**: Added debug logging to confirm which Certificate Pack is being used during renewal.
+
+## v1.1.0 Build 5
+- **Hotfix (ClearPass)**: Added `callback_host` configuration field to Service Editor. This allows manual override of the callback IP, fixing `422 Unprocessable Entity` errors when the container's internal IP is not reachable from the ClearPass server.
+- **Verification**: Verified end-to-end flow of configuration persistence.
+
 ## [1.1.0_build4] - 2026-01-06
 ### Fixed
 - **ClearPass Renewal**: Resolved `422 Unprocessable Entity` and `404 Not Found` errors.
