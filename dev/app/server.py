@@ -756,6 +756,9 @@ def start_scheduler():
         while manager.is_locked:
             time.sleep(5) # Check every 5 seconds
 
+        # Delay to ensure UI loads first (User Experience)
+        time.sleep(10)
+
         # RUN ONCE ON STARTUP (After Unlock)
         try:
             root_logger.info("System Unlocked. Running initial Health & Expiry Check...")
