@@ -49,6 +49,19 @@ def get_version():
     except: pass
     return ver
 
+def is_auth_configured():
+    """Checks if AUTH_FILE exists and contains valid JSON with a username."""
+    if not os.path.exists(AUTH_FILE):
+        return False
+    try:
+        with open(AUTH_FILE, 'r') as f:
+            content = f.read().strip()
+            if not content: return False
+            data = json.loads(content)
+            return bool(data.get('username'))
+    except:
+        return False
+
 # Initialize Manager (Starts LOCKED unless env var provided)
 MASTER_PASSWORD = os.getenv('MASTER_PASSWORD')
 manager = CertManager(CONFIG_PATH, CERT_DIR, master_password=MASTER_PASSWORD, backup_dir=BACKUP_DIR)
@@ -78,9 +91,8 @@ def check_auth():
     if request.path.startswith('/static') or request.endpoint in WHITELIST:
         return
     
-    # Check if SETUP is needed (no auth.json OR no config.yaml)
-    # If config doesn't exist AND auth doesn't exist -> Setup
-    if not os.path.exists(AUTH_FILE) and not os.path.exists(CONFIG_PATH):
+    # If auth doesn't exist (or is invalid/empty) -> Setup needed
+    if not is_auth_configured():
         return redirect('/setup')
 
     # If Locked or Not Logged In
@@ -97,7 +109,7 @@ def index():
 
 @app.route('/setup', methods=['GET'], endpoint='setup')
 def setup_page():
-    if os.path.exists(AUTH_FILE):
+    if is_auth_configured():
          return redirect('/login')
     return render_template('setup.html', app_version=get_version())
 
@@ -139,7 +151,7 @@ def do_login():
     password = data.get('password')
     
     # 1. Verify Username
-    if not os.path.exists(AUTH_FILE):
+    if not is_auth_configured():
         return jsonify({"success": False, "message": "System not set up. Please go to /setup"}), 400
         
     with open(AUTH_FILE, 'r') as f:

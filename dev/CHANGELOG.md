@@ -1,3 +1,6 @@
+## [v1.1.0.20260109.05] - 2026-01-09
+- **Bug Fix**: Resolved a critical crash on fresh installations where `auth.json` or `config.yaml` were empty/invalid (e.g. created via `touch`). The system now correctly identifies this state as "Not Configured" and redirects to the Setup page.
+
 ## [v1.1.0.20260109.04] - 2026-01-09
 - **Feature (ClearPass)**: Added Multi-Node Support. Users can now specify "Additional Nodes" (IPs/Hosts) in the service configuration. The system will iterate through all configured nodes during certificate renewal to ensure cluster-wide updates.
 - **UI**: Added "Additional Nodes" input field to the ClearPass service editor.
