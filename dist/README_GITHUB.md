@@ -5,7 +5,7 @@
 ![Main Dashboard](assets/images/CertAutomator%20Dashboard.png)
 
 > [!NOTE]
-> This is a personal hobby project of mine, built to eliminate the manual toil and frustration of managing SSL certificates across different platforms.
+> **A Friendly Note**: This is a strictly non-commercial hobby project of mine, built to eliminate the manual toil and frustration of managing SSL certificates across different platforms. It is free, open-source, and intended solely for personal use and community contribution.
 
 CertAutomator is a powerful, secure, and user-friendly web application designed to eliminate the manual "pain" of SSL certificate management. It provides a single point of upload for your certificates and automatically distributes them to a wide range of services across your network.
 
