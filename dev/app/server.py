@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, send_from_directory,
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 import os
 import logging
+from logging.handlers import RotatingFileHandler
 import json
 from .cert_manager import CertManager
 from .cert_validator import CertValidator
@@ -35,7 +36,7 @@ app.temp_registry = {}
 CONFIG_PATH = os.getenv('CONFIG_PATH', 'config.yaml')
 CERT_DIR = os.getenv('CERT_DIR', 'certs') # Use relative 'certs' for local development
 BACKUP_DIR = os.getenv('BACKUP_DIR', 'backups') # Default relative backups
-LOG_FILE = "cert_automate.log"
+LOG_FILE = os.path.join(os.getenv('LOG_DIR', 'logs'), "cert_automate.log")
 AUTH_FILE = os.getenv('AUTH_PATH', 'auth.json') # Stores username
 
 def get_version():
@@ -62,7 +63,8 @@ logging.info(f"Use this token via API to reset system if password is forgotten."
 logging.info(f"-----------------------")
 
 # Configure Logger to file
-file_handler = logging.FileHandler(LOG_FILE)
+os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+file_handler = RotatingFileHandler(LOG_FILE, maxBytes=10*1024*1024, backupCount=5)
 file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
 root_logger = logging.getLogger()
 root_logger.addHandler(file_handler)

@@ -1,3 +1,10 @@
+## [v1.1.0.20260109.02] - 2026-01-09
+- **Optimization**: Implemented Log Rotation for `cert_automate.log` (Max 10MB, 5 backups) to prevent disk usage issues.
+
+## [v1.1.0.20260109.01] - 2026-01-09
+- **Bug Fix**: Fixed application logging path. Logs are now correctly written to `/app/logs/` (mounted volume) instead of the container root.
+- **Security**: Upgraded Docker base image to `python:3.11-slim-bookworm` (Debian 12) to resolve high-severity CVEs.
+
 ## [v1.1.0.20260107.16] - 2026-01-07
 - **Feature (Portainer)**: Dynamic Path Detection. "Auto Detect" now inspects the container filesystem to identify active certificate filenames (`cert.pem`, `portainer.crt`, etc.).
 - **Bug Fix (Portainer)**: Resolved SSH "Permission denied" errors using a robust sudo fallback mechanism (via `/tmp`).
