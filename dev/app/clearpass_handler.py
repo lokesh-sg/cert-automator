@@ -47,23 +47,14 @@ class ArubaClearPassHandler(CertificateHandler):
             for current_host in hosts:
                 self.logger.info(f"--- Processing Node: {current_host} ---")
                 try:
-                    # 3. Register for Download (Need fresh URL? Usually depends on callback host)
-                    # Ideally we register once, but if callback host is auto-detected as 'local ip' 
-                    # from the perspective of the target, it might differ?
-                    # But _register_download generates a LOCAL URL on THIS server.
-                    # So it is static.
-                    download_url = self._register_download(pfx_path)
-                    self.logger.info(f"Staged PFX for download at: {download_url}")
-                    
-                    # 4. Get Access Token (Per Host, as they might be separate nodes in cluster but auth syncs?)
-                    # In CP cluster, auth syncs. But we are talking to specific IP.
+                    # 3. Get Access Token (Per Host)
                     token = self._get_access_token(current_host, client_id, client_secret)
                     if not token:
                         self.logger.error(f"Failed to get token for {current_host}")
                         continue
                         
-                    # 5. Import Certificate
-                    if self._import_certificate(current_host, token, download_url, pfx_password):
+                    # 4. Import Certificate (Handles URL generation internally for each cluster node)
+                    if self._import_certificate(current_host, token, pfx_path, pfx_password):
                         self.logger.info(f"ClearPass Import Successful for {current_host}")
                         overall_success = True
                     else:
@@ -164,7 +155,7 @@ class ArubaClearPassHandler(CertificateHandler):
             self.logger.error(f"Auth Exception: {e}")
             return None
 
-    def _import_certificate(self, host, token, download_url, pfx_password):
+    def _import_certificate(self, host, token, pfx_path, pfx_password):
         # The correct flow (based on cppm-certsync) is:
         # 1. Get Cluster Server UUIDs
         # 2. PUT to /api/server-cert/name/{uuid}/{usage}
@@ -206,6 +197,10 @@ class ArubaClearPassHandler(CertificateHandler):
         
         success_count = 0
         for name, uuid_val in server_uuids.items():
+            # Generate FRESH download URL for EACH node (One-Time-Use Token)
+            download_url = self._register_download(pfx_path)
+            self.logger.info(f"Staged PFX for {name} at: {download_url}")
+
             # Construct Endpoint
             # /api/server-cert/name/{uuid}/{usage}
             # Note: Usage might be 'HTTPS' (case sensitive?) -> script says "HTTPS" etc.

@@ -1,3 +1,6 @@
+## [v1.1.0.20260109.08] - 2026-01-09
+- **Bug Fix (ClearPass)**: Fixed a logic error in multi-node updates where the file download token was consumed by the first node (Publisher), causing subsequent Subscribers to fail with 422 errors. The system now generates a unique, fresh download URL for each node in the cluster.
+
 ## [v1.1.0.20260109.07] - 2026-01-09
 - **Bug Fix (ClearPass)**: Fixed `Invalid URL` error by automatically sanitizing host inputs. The system now prepends `https://` to IPs/Hostnames if the scheme is missing.
 - **Infrastructure**: Normalized global directory paths (`CERT_DIR`, `LOG_DIR`, `BACKUP_DIR`) to enforce absolute path resolution. This fixes path mismatches in certain Docker Compose volume configurations.
