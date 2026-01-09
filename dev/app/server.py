@@ -73,7 +73,11 @@ master_password = os.getenv('MASTER_PASSWORD') # Initialize Cert Manager
 logger = logging.getLogger(__name__)
 logger.info(f"CERT_DIR resolved to: {CERT_DIR}")
 app.cert_manager = CertManager(CONFIG_PATH, CERT_DIR, master_password=master_password, backup_dir=BACKUP_DIR)
+# Restore backward compatibility for existing code references
+manager = app.cert_manager
+
 app.validator = CertValidator()
+validator = app.validator
 
 # 5. Runtime Security Tokens
 import secrets
