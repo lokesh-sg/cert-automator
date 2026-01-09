@@ -19,6 +19,10 @@ class ArubaClearPassHandler(CertificateHandler):
             self.logger.error("Missing ClearPass config (host, client_id, client_secret)")
             return False
 
+        # Ensure scheme for primary host
+        if "://" not in host:
+            host = f"https://{host}"
+
         hosts = [host]
         additional = self.config.get('additional_nodes')
         if additional:

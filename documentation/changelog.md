@@ -1,3 +1,8 @@
+## [v1.1.0.20260109.07] - 2026-01-09
+- **Bug Fix (ClearPass)**: Fixed `Invalid URL` error by automatically sanitizing host inputs. The system now prepends `https://` to IPs/Hostnames if the scheme is missing.
+- **Infrastructure**: Normalized global directory paths (`CERT_DIR`, `LOG_DIR`, `BACKUP_DIR`) to enforce absolute path resolution. This fixes path mismatches in certain Docker Compose volume configurations.
+- **Logging**: Application now explicitly respects the `LOG_FILE` environment variable.
+
 ## [v1.1.0.20260109.06] - 2026-01-09
 - **Release Fix**: Re-build of v1.1.0.20260109.05 to ensure Docker Hub registry propagation. Contains the fix for fresh install crashes.
 

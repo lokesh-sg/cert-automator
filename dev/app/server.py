@@ -33,11 +33,17 @@ app.temp_registry = {}
 # Note: Removed CORS(app) to enforce Same-Origin security. API is accessed from same domain.
 
 # Configuration
-CONFIG_PATH = os.getenv('CONFIG_PATH', 'config.yaml')
-CERT_DIR = os.getenv('CERT_DIR', 'certs') # Use relative 'certs' for local development
-BACKUP_DIR = os.getenv('BACKUP_DIR', 'backups') # Default relative backups
-LOG_FILE = os.path.join(os.getenv('LOG_DIR', 'logs'), "cert_automate.log")
-AUTH_FILE = os.getenv('AUTH_PATH', 'auth.json') # Stores username
+CONFIG_PATH = os.path.abspath(os.getenv('CONFIG_PATH', 'config.yaml'))
+CERT_DIR = os.path.abspath(os.getenv('CERT_DIR', 'certs')) # Resolves to /app/certs if relative, or /certs if absolute
+BACKUP_DIR = os.path.abspath(os.getenv('BACKUP_DIR', 'backups'))
+_log_env = os.getenv('LOG_FILE')
+if _log_env:
+    LOG_FILE = os.path.abspath(_log_env)
+else:
+    _log_dir = os.path.abspath(os.getenv('LOG_DIR', 'logs'))
+    LOG_FILE = os.path.join(_log_dir, "cert_automate.log")
+
+AUTH_FILE = os.path.abspath(os.getenv('AUTH_PATH', 'auth.json'))
 
 def get_version():
     ver = "Dev Mode"
@@ -63,9 +69,11 @@ def is_auth_configured():
         return False
 
 # Initialize Manager (Starts LOCKED unless env var provided)
-MASTER_PASSWORD = os.getenv('MASTER_PASSWORD')
-manager = CertManager(CONFIG_PATH, CERT_DIR, master_password=MASTER_PASSWORD, backup_dir=BACKUP_DIR)
-validator = CertValidator()
+master_password = os.getenv('MASTER_PASSWORD') # Initialize Cert Manager
+logger = logging.getLogger(__name__)
+logger.info(f"CERT_DIR resolved to: {CERT_DIR}")
+app.cert_manager = CertManager(CONFIG_PATH, CERT_DIR, master_password=master_password, backup_dir=BACKUP_DIR)
+app.validator = CertValidator()
 
 # 5. Runtime Security Tokens
 import secrets
