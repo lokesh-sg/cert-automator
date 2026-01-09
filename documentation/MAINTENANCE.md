@@ -1,4 +1,5 @@
 # Maintenance & Lifecycle Guide
+<!-- Last Updated: 2026-01-09 -->
 
 This document outlines how to manage, update, and maintain CertAutomator in a production environment.
 

@@ -1,6 +1,9 @@
 import os
 import shutil
-import zipfile
+"""
+Build script for CertAutomator.
+Handles version bumping, changelog updates, and artifact packaging.
+"""
 import json
 import datetime
 

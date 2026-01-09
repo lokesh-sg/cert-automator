@@ -1,4 +1,5 @@
-# CertAutomator
+# Cert Automator
+> Enterprise-grade Certificate Management Solution
 
 **The Centralized "Vault" for Automated SSL Certificate Management.**
 

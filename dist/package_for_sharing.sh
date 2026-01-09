@@ -1,4 +1,5 @@
 #!/bin/bash
+# Maintenance Update: 2026-01-09
 
 # CertAutomator - Distribution & Export Script
 # This script builds the production Docker image and exports it to a portable .tar file.

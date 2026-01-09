@@ -1,4 +1,4 @@
-# System & Python
+# System & Python Ignore Rules
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -39,3 +39,4 @@ documentation/project_standards.md
 implementation_plan*.md
 REDDIT_*.md
 GITHUB_RELEASE*.md
+documentation/ROADMAP.md
