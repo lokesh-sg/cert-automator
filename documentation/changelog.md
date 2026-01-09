@@ -1,3 +1,6 @@
+## [v1.1.0.20260109.06] - 2026-01-09
+- **Release Fix**: Re-build of v1.1.0.20260109.05 to ensure Docker Hub registry propagation. Contains the fix for fresh install crashes.
+
 ## [v1.1.0.20260109.05] - 2026-01-09
 - **Bug Fix**: Resolved a critical crash on fresh installations where `auth.json` or `config.yaml` were empty/invalid (e.g. created via `touch`). The system now correctly identifies this state as "Not Configured" and redirects to the Setup page.
 
