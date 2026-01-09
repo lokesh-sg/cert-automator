@@ -1034,6 +1034,10 @@
                             <input type="password" id="cp-client-secret" value="${service ? service.client_secret || '' : ''}" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
                         </div>
                     </div>
+                    <div style="margin-top: 1rem;">
+                        <label style="font-size: 0.8rem;">Additional Nodes (Comma separated IPs/Hosts)</label>
+                        <input type="text" id="cp-additional-nodes" value="${service ? service.additional_nodes || '' : ''}" placeholder="192.168.1.11, 192.168.1.12" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
+                    </div>
                     <div style="margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                          <div>
                             <label style="font-size: 0.8rem;">PFX Password (Optional)</label>
@@ -1237,6 +1241,7 @@
                     const cppp = document.getElementById('cp-pfx-pass'); if (cppp) payload.pfx_password = cppp.value;
                     const cpcbh = document.getElementById('cp-cb-host'); if (cpcbh) payload.callback_host = cpcbh.value;
                     const cpusg = document.getElementById('cp-usage'); if (cpusg) payload.cert_usage = cpusg.value;
+                    const cpan = document.getElementById('cp-additional-nodes'); if (cpan) payload.additional_nodes = cpan.value;
                 }
 
                 if (service) payload.original_name = service.name;
@@ -1538,6 +1543,12 @@
             });
 
             ['conf-api-key', 'conf-api-secret'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.oninput = updateJson;
+            });
+            
+            // ClearPass Inputs
+            ['cp-client-id', 'cp-client-secret', 'cp-pfx-pass', 'cp-cb-host', 'cp-usage', 'cp-additional-nodes'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.oninput = updateJson;
             });

@@ -19,31 +19,56 @@ class ArubaClearPassHandler(CertificateHandler):
             self.logger.error("Missing ClearPass config (host, client_id, client_secret)")
             return False
 
-        # Ensure Scheme
-        if "://" not in host:
-            host = f"https://{host}"
-
-        # 2. Generate PFX
+        hosts = [host]
+        additional = self.config.get('additional_nodes')
+        if additional:
+            # Parse comma-separated list
+            extra_hosts = [h.strip() for h in additional.split(',') if h.strip()]
+            
+            # Ensure scheme
+            for i, h in enumerate(extra_hosts):
+                 if "://" not in h:
+                     extra_hosts[i] = f"https://{h}"
+            
+            hosts.extend(extra_hosts)
+            
+        # 2. Generate PFX (Once for all)
         pfx_path = self._create_pfx(cert_path, key_path, pfx_password)
         if not pfx_path:
             return False
             
         try:
-            # 3. Register for Download
-            download_url = self._register_download(pfx_path)
-            self.logger.info(f"Staged PFX for download at: {download_url}")
+            overall_success = False
             
-            # 4. Get Access Token
-            token = self._get_access_token(host, client_id, client_secret)
-            if not token:
-                return False
-                
-            # 5. Import Certificate
-            if self._import_certificate(host, token, download_url, pfx_password):
-                self.logger.info("ClearPass Import Successful")
-                return True
-            else:
-                return False
+            for current_host in hosts:
+                self.logger.info(f"--- Processing Node: {current_host} ---")
+                try:
+                    # 3. Register for Download (Need fresh URL? Usually depends on callback host)
+                    # Ideally we register once, but if callback host is auto-detected as 'local ip' 
+                    # from the perspective of the target, it might differ?
+                    # But _register_download generates a LOCAL URL on THIS server.
+                    # So it is static.
+                    download_url = self._register_download(pfx_path)
+                    self.logger.info(f"Staged PFX for download at: {download_url}")
+                    
+                    # 4. Get Access Token (Per Host, as they might be separate nodes in cluster but auth syncs?)
+                    # In CP cluster, auth syncs. But we are talking to specific IP.
+                    token = self._get_access_token(current_host, client_id, client_secret)
+                    if not token:
+                        self.logger.error(f"Failed to get token for {current_host}")
+                        continue
+                        
+                    # 5. Import Certificate
+                    if self._import_certificate(current_host, token, download_url, pfx_password):
+                        self.logger.info(f"ClearPass Import Successful for {current_host}")
+                        overall_success = True
+                    else:
+                        self.logger.error(f"ClearPass Import Failed for {current_host}")
+                        
+                except Exception as e:
+                    self.logger.error(f"Exception processing {current_host}: {e}")
+                    
+            return overall_success
                 
         finally:
             # 6. Cleanup
