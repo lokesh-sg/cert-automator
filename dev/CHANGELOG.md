@@ -1,3 +1,6 @@
+## [v1.1.0.20260109.03] - 2026-01-09
+- **Bug Fix**: Fixed Startup Health Check not updating the UI. The scheduler now waits for the system to unlock (user login) before running the initial certificate check.
+
 ## [v1.1.0.20260109.02] - 2026-01-09
 - **Optimization**: Implemented Log Rotation for `cert_automate.log` (Max 10MB, 5 backups) to prevent disk usage issues.
 

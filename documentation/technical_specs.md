@@ -1,6 +1,6 @@
 # Technical Specifications - Certificate Automation Tool
 
-**Version**: v1.1.0.20260107.16
+**Version**: v1.1.0.20260109.03
 **Date**: 2026-01-06
 **Author**: Lokesh G
 

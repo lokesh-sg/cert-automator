@@ -752,9 +752,13 @@ def start_scheduler():
     import datetime
     
     def run_schedule():
-        # RUN ONCE ON STARTUP
+        # WAIT FOR UNLOCK (System starts locked)
+        while manager.is_locked:
+            time.sleep(5) # Check every 5 seconds
+
+        # RUN ONCE ON STARTUP (After Unlock)
         try:
-            root_logger.info("Startup: Running initial Health & Expiry Check...")
+            root_logger.info("System Unlocked. Running initial Health & Expiry Check...")
             manager.perform_daily_health_check()
         except Exception as e:
             root_logger.error(f"Startup Health Check Failed: {e}")
