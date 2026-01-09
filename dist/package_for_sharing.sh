@@ -43,8 +43,15 @@ if [[ "$PUSH_CHOICE" == "y" || "$PUSH_CHOICE" == "Y" ]]; then
         # Extract Version
         MAJOR=$(grep -o '"major": [0-9]*' build_scripts/version_info.json | awk '{print $2}')
         MINOR=$(grep -o '"minor": [0-9]*' build_scripts/version_info.json | awk '{print $2}')
-        BUILD=$(grep -o '"build": [0-9]*' build_scripts/version_info.json | awk '{print $2}')
-        VERSION_TAG="v${MAJOR}.${MINOR}.0_build${BUILD}"
+        PATCH=$(grep -o '"patch": [0-9]*' build_scripts/version_info.json | awk '{print $2}')
+        LAST_DATE=$(grep -o '"last_date": "[0-9]*"' build_scripts/version_info.json | cut -d'"' -f4)
+        DAILY_BUILD=$(grep -o '"daily_build": [0-9]*' build_scripts/version_info.json | awk '{print $2}')
+        
+        # Pad daily_build to 2 digits
+        DAILY_BUILD_PADDED=$(printf "%02d" $DAILY_BUILD)
+        
+        # Format: vX.Y.Z.YYYYMMDD.BB
+        VERSION_TAG="v${MAJOR}.${MINOR}.${PATCH}.${LAST_DATE}.${DAILY_BUILD_PADDED}"
         
         echo -e "${BLUE}🏷️  Tags: latest, ${VERSION_TAG}${NC}"
 

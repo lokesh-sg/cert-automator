@@ -1,9 +1,7 @@
-# OS & System
+# System & Python
 .DS_Store
 .AppleDouble
 .LSOverride
-
-# Python
 __pycache__/
 *.pyc
 *.pyo
@@ -16,43 +14,28 @@ venv/
 .installed.cfg
 *.egg
 
-# Build Artifacts & Large Files
+# Global Secrets & Configuration (Recursive)
+# These files are ignored in EVERY directory to protect all environments
+auth.json
+config.yaml
+certs/
+backup/
+backups/
+logs/
+
+# Build Artifacts
 *.tar
 *.zip
 *.gz
 *.log
-dist/*.tar
-cert_automate_*.zip
-
-# Directories to Ignore
-backup/
-dev/backups/
-backups/
 code_backup/
 
-# Prod Specific Ignores (Allow structure, ignore data)
+# Release Specific
 prod/app/
-prod/certs/
-prod/backup/
-prod/logs/
-prod/auth.json
-prod/config.yaml
 
-# Secrets & Local Config (IMPORTANT)
-auth.json
-config.yaml
-certs/
-app/auth.json
-app/config.yaml
-dev/app/auth.json
-dev/app/config.yaml
-
-# Internal Documentation (Not for Public)
+# Internal Documentation
 documentation/product_vision.md
 documentation/project_standards.md
 implementation_plan*.md
-dist/LINKEDIN_DRAFT.md
-REDDIT_POST.md
-REDDIT_DRAFT.md
-GITHUB_RELEASE.md
-GITHUB_RELEASE_DESCRIPTION.md
+REDDIT_*.md
+GITHUB_RELEASE*.md

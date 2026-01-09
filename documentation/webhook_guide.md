@@ -6,7 +6,7 @@ The **Generic Webhook Handler** allows you to push certificates to any system th
 
 To use the Webhook Handler, you can either:
 1.  **Directly Add a Service** and select `webhook` as the Type.
-2.  **Create a Custom Type** (e.g., "My Custom Firewall") via "Manage Services > ⚙️ Manage Types", and set its Base Handler to `webhook`.
+2.  **Create a Custom Type** (e.g., "My Custom Firewall") via "Manage Services > Manage Types", and set its Base Handler to `webhook`.
 
 ## 2. Configuration Fields
 

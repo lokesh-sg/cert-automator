@@ -2,7 +2,7 @@
 
 This guide explains how to recover your system in case of configuration corruption, lost passwords, or migration issues.
 
-## 📁 Data Locations
+## Data Locations
 In a standard Docker deployment, your persistent data is located in these mapped volumes on your host:
 
 - **Config**: `./app/config.yaml`
@@ -12,7 +12,7 @@ In a standard Docker deployment, your persistent data is located in these mapped
 
 ---
 
-## 🛠️ Scenario 1: Configuration Corruption
+## Scenario 1: Configuration Corruption
 **Symptoms:** "Invalid Password" (when you are sure it's correct), "Decryption Failed", or the app appears completely empty.
 
 1.  **Stop the Container**:
@@ -35,7 +35,7 @@ In a standard Docker deployment, your persistent data is located in these mapped
 
 ---
 
-## 🛡️ Scenario 2: Forgotten Master Password
+## Scenario 2: Forgotten Master Password
 **Symptoms:** You cannot log in and do not have a working backup of the configuration.
 
 CertAutomator includes an **Emergency Reset Token** generated on every startup for your protection.
@@ -52,7 +52,7 @@ CertAutomator includes an **Emergency Reset Token** generated on every startup f
 
 ---
 
-## 🚀 Scenario 3: Migrating from Dev to Prod
+## Scenario 3: Migrating from Dev to Prod
 To move your setup from a development machine to a production server:
 
 1.  **Stop the Dev App**.
@@ -66,7 +66,7 @@ To move your setup from a development machine to a production server:
 
 ---
 
-## 🔄 Scenario 4: Updating CertAutomator
+## Scenario 4: Updating CertAutomator
 Updating to a newer version is designed to be seamless.
 
 1.  **Backup**: Ensure you have a recent backup of `./app/config.yaml`.
@@ -84,6 +84,6 @@ Updating to a newer version is designed to be seamless.
 
 ---
 
-## ⚠️ Critical Warnings
+## Critical Warnings
 - **The Master Password is the Encryption Key**: If you lose your password and don't have the Emergency Token, your `config.yaml` can NEVER be decrypted.
 - **Backup your Backups**: Occasionally download the `./backup/` folder to a separate machine for ultimate safety.

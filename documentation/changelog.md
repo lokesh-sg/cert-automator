@@ -1,12 +1,51 @@
-# Changelog
+## [v1.1.0.20260107.16] - 2026-01-07
+- **Feature (Portainer)**: Dynamic Path Detection. "Auto Detect" now inspects the container filesystem to identify active certificate filenames (`cert.pem`, `portainer.crt`, etc.).
+- **Bug Fix (Portainer)**: Resolved SSH "Permission denied" errors using a robust sudo fallback mechanism (via `/tmp`).
+- **Bug Fix (TrueNAS)**: Fixed GUI activation failure by adding an explicit UI restart (Nginx reload) after certificate updates.
+- **Improvement (TrueNAS)**: Enhanced activation verification to cross-check both certificate ID and Name.
+- **Cleanup**: Refactored `PortainerHandler` and `SyncthingHandler` for better consistency using `BaseSSHHandler`.
+- **UI**: Added help context and improved path pre-filling for SSH-based services.
 
-All notable changes to the "Certificate Automation Tool" will be documented in this file.
+## [v1.1.0 Build 11] (Emergency Fix) - 2026-01-07
+- **Critical Fix**: Restored missing `system.general.update` calls in TrueNAS handler (regression from Build 10 plan).
+- **Improvement**: Added robust handling for "Connection Drop" during TrueNAS Nginx reloads. The handler now treats a connection loss immediately after activation as a tentative success.
+- **Improvement**: Added post-activation sleep and best-effort re-verification for TrueNAS.
+- **Improvement**: Enhanced Portainer restart logging with warnings for unstable ID-based commands.
+- **Bug Fix**: Improved TrueNAS activation reliability. Added a 10-second wait after certificate activation to ensure Nginx reloads correctly, followed by a verification check.
+- **Bug Fix**: Enhanced Portainer renewal with strict SSH upload verification. The handler now verifies that certificate and key files were successfully transferred before attempting a restart.
+- **Improvement**: Added detailed logging for restart command results in the Portainer handler.
+
+## v1.1.0 Build 7
+- **Improvement**: Standardized Development Environment directory structure to match Production logic. Use `./run_dev.sh` to start the dev server.
+- **Cleanup**: Removed redundant `input_certificates` directory. Certificates are now unified in `certs/` (Project Root).
+- **Fix**: Resolved `auth.json` and `config.yaml` path resolution issues in Dev mode.
+
+## v1.1.0 Build 6
+- **Bug Fix**: Fixed an issue where selecting a custom Certificate Pack in the service editor was ignored during renewal (Backend expected `cert_pack`, Frontend sent `cert_pack_id`).
+- **Improvement**: Added debug logging to confirm which Certificate Pack is being used during renewal.
+
+## v1.1.0 Build 5
+- **Hotfix (ClearPass)**: Added `callback_host` configuration field to Service Editor. This allows manual override of the callback IP, fixing `422 Unprocessable Entity` errors when the container's internal IP is not reachable from the ClearPass server.
+- **Verification**: Verified end-to-end flow of configuration persistence.
 
 ## [1.1.0_build4] - 2026-01-06
 ### Fixed
-- **ClearPass Renewal**: Fixed critical renewal failure (422/404) by adjusting security middleware to safely allow certificate downloads via one-time tokens.
+- **ClearPass Renewal**: Resolved `422 Unprocessable Entity` and `404 Not Found` errors.
+    - Reverted to URL-based callback method for reliability.
+    - Whitelisted `/api/download` endpoint in global security middleware to prevent `401 Unauthorized`.
+    - Added mandatory expiry timestamp to temporary download tokens to satisfy new security constraints.
 
-## [1.1.0_build2] - 2026-01-06
+## [1.1.0] - 2026-01-06
+### Security Hardening (Docker Scout Policy Compliance)
+- **Non-Root User**: Container now runs as `appuser` (UID 1000) instead of root, enforcing least privilege permissions.
+- **CVE Patching**: Dockerfile now includes `apt-get upgrade -y` to install latest Debian security patches.
+- **Supply Chain**: Added SBOM (Software Bill of Materials) and Provenance attestations to Docker images.
+
+## [v1.1.0 Build 13] - 2026-01-07
+- **Feature**: Dynamic Portainer Path Detection. "Auto Detect" now inspects the container filesystem to identify the correct certificate filenames (`cert.pem`, `portainer.crt`, etc.).
+- **Improved**: Cleaned up `PortainerHandler.renew` to use configured paths instead of hardcoded overrides.
+
+## [v1.1.0 Build 12] - 2026-01-07
 ### Fixed
 - **UI Refresh**: Fixed "Renew All" button not automatically refreshing health/status badges upon completion.
 - **Timestamps**: Corrected "NaNs ago" display issue by improving timezone parsing logic in `index.html`.
@@ -15,129 +54,89 @@ All notable changes to the "Certificate Automation Tool" will be documented in t
 ### Added
 - **Live Timers**: "Last Renewal" timestamp now updates dynamically (ticks every 10s) without requiring a page refresh.
 
-## [1.1.0] - 2026-01-06
-### Security Hardening (Docker Scout Policy Compliance)
-- **Non-Root User**: Container now runs as `appuser` (UID 1000) instead of root, enforcing least privilege permissions.
-- **CVE Patching**: Dockerfile now includes `apt-get upgrade -y` to install latest Debian security patches.
-- **Supply Chain**: Added SBOM (Software Bill of Materials) and Provenance attestations to Docker images.
-
 ### Production Readiness
 - **WSGI Server**: Replaced Flask development server with Gunicorn (Green Unicorn) for production-grade performance and stability.
 - **Config**: Gunicorn configured with 4 threads and 1 worker (to maintain scheduler integrity).
 - **Health Checks**: Added `curl` to the image to support Docker health check probes.
 - **Documentation**: Updated READMEs with crucial `chown 1000:1000` volume permission instructions for non-root deployment.
 
-## [v1.0_build18] - 2026-01-06
+## [1.0.0_build18] - 2026-01-06
 ### Added
-- **Lifecycle Management**: Created `MAINTENANCE.md` covering Docker upgrade procedures, configuration persistence through volume mounts, and automatic backup policies.
-- **Recovery Documentation**: Integrated update procedures into `RECOVERY_GUIDE.md` for better administrative visibility.
+- **Documentation**: Created `MAINTENANCE.md` covering Docker updates, data persistence, and config evolution.
+- **Documentation**: Added "Updating CertAutomator" section to `RECOVERY_GUIDE.md`.
 
-## [v1.0_build17] - 2026-01-03
+## [1.0.0_build17] - 2026-01-03
 ### Changed
-- **Cleanup**: Removed temporary debug logging and "TEST_VISIBLE" markers from `server.py` for cleaner production logs.
+- **Cleanup**: Removed temporary debug logging from `server.py` for production readiness.
 
-## [v1.0_build15] - 2026-01-03
+## [1.0.0_build15] - 2026-01-03
 ### Fixed
-- **UI Layout**: Fixed version display positioning on Login and Setup screens. Used `flex-direction: column` to center the version number directly below the authentication cards.
-- **Template Variables**: Standardized version variable naming to `app_version` across index, login, and setup templates.
+- **UI Layout**: Fixed version display positioning on Login and Setup screens (centered below the card).
+- **Template Variables**: Standardized version variable naming to `app_version` across all templates.
 
-## [v1.0_build14] - 2026-01-03
+## [1.0.0_build14] - 2026-01-03
 ### Added
-- **UI Consistency**: Expanded build version display to the Login and Setup pages for consistent tracking across the entire application.
-- **Backend Refactoring**: Centralized version retrieval logic in `server.py` using a dedicated `get_version()` helper with robust path resolution.
+- **UI Consistency**: Expanded version display to login and setup pages.
+- **Backend Refactoring**: Centralized version retrieval logic in `server.py`.
 
-## [v1.0_build12] - 2026-01-03
-### Security Hardening (Deep Sweep)
-- **Global CSRF Protection**: All state-changing API calls (POST/DELETE) now require a valid CSRF token.
-- **Session Hardening**: Cookies now use `HttpOnly`, `SameSite=Lax`, and `Secure` (where applicable) to prevent hijacking.
-- **Secret Enforcement**: The system will now refuse to start in production if `FLASK_SECRET` is not set or using the default.
-- **Emergency Recovery**: Added a log-based `EMERGENCY_RESET_TOKEN` to allow factory resets if the master password is lost.
-- **API Lockdown**: Minimized the unauthenticated whitelist; whitelisted logs and health checks are now strictly authenticated.
-- **Input Sanitization**: Integrated `secure_filename` for all file-related inputs to prevent path traversal.
+## [1.0.0_build13] - 2026-01-03
+### Added
+- **UI Enhancement**: Added version display to the app footer for easier build tracking.
+- **Path Resolution**: Fixed backend pathing logic for `version.json` to support different working directories.
 
-## [v1.0_build11] - 2026-01-03
+## [1.0.0_build12] - 2026-01-03
+### Security Hardening (Deep Audit Build)
+- **CSRF Protection**: Integrated `Flask-WTF` for global Cross-Site Request Forgery protection.
+- **Session Security**: Enforced `HttpOnly`, `SameSite=Lax`, and `Secure` cookie flags.
+- **Secret Management**: Implemented fail-fast check for `FLASK_SECRET` in production mode.
+- **Authentication**: Secured `reset_system` with master password or Emergency Log Token.
+- **API Hardening**: Moved `health_check` behind auth; restricted whitelist to core login flow.
+- **Input Validation**: Integrated `secure_filename` and path traversal checks for file operations.
+- **Frontend Refinement**: Implemented `secureFetch` wrapper for all state-changing API requests.
+
+## [1.0.0_build9] - 2026-01-03
+
+### Added
+- **Deployment**: Integrated Docker health checks and `.dockerignore`.
+- **Infrastructure**: Standardized production `docker-compose.yml` for volume persistence.
+
+## [1.0.0_build8] - 2026-01-03
+
+### Added
+- **Resiliency**: Configurable backup directory via `BACKUP_DIR` for Docker persistence.
+- **Docker**: Updated compose templates for production-ready state management.
+
+## [1.0.0_build7] - 2026-01-03
+
 ### Fixed
-- **Authentication Recovery**: Restored system access by recovering corrupted `config.yaml` from timestamped backups.
-- **Logging**: Reverted verbose debug logging to standard informational levels for production stability.
+- **TrueNAS Scale**: Resolved renewal failures by implementing asynchronous Job ID waiting and name-based resolution.
+- **UI Refresh**: Added "System Locked" status and improved 401 Unauthorized handling for better user feedback.
+- **Badge Logic**: Fixed "Certificates Missing" badge to correctly include the Default certificate pack.
+- **Corruption Protection**: Added rolling timestamped backups (last 20) for `config.yaml`.
+- **Infrastructure**: Hardened session security and updated WebSocket protocols.
 
-## [v1.0_build9] - 2026-01-03
+## [1.0.0_build6] - 2026-01-03
 ### Added
-- **Production Readiness**:
-    - Added `.dockerignore` to streamline production image builds and prevent accidental leak of sensitive local files (venv, logs, backups).
-    - Implemented a dedicated `/api/health` endpoint for Docker health monitoring.
-    - Updated `docker-compose.yml` with production-grade settings: healthchecks, volume persistence for `auth.json`, and automatic container restarts.
+- **Multi-Certificate**: UI for managing multiple certificate packs.
+- **Renewal Tracking**: Persisting and displaying last renewal status.
 
-## [v1.0_build8] - 2026-01-03
+## [1.0.0] - 2026-01-02
+
 ### Added
-- **Production Resiliency**: Introduced `BACKUP_DIR` environment variable support for configurable, persistent configuration backups, optimized for Docker volume mounts.
-- **Docker Orchestration**: Updated `docker-compose.yml` with dedicated volumes and environment mappings for persistent logs and backups.
+- **ClearPass Integration**: Full support for Aruba ClearPass certificate updates.
+    - Cluster-aware updates (updates all nodes in cluster).
+    - Support for multiple certificate usages (HTTPS, RADIUS, RadSec, etc.).
+    - Legacy PFX support (RC2 encryption) for compatibility.
+    - Automatic password generation (alphanumeric).
+- **Portainer Auto-Detect**: SSH-based detection for both certificate and key paths (`--sslcert`, `--sslkey`).
+- **Config Backup**: Automatic `config.yaml.bak` creation on every save.
+- **Security**: Thread-safe temporary file registry for downloads using Flask `current_app`.
 
-## [v1.0_build7] - 2026-01-03
 ### Fixed
-- **TrueNAS Integration Stability**:
-    - Resolved "Please specify a valid certificate which exists in the system" error by handling asynchronous Job IDs and waiting for completion via `core.job_wait`.
-    - Implemented **Name-Based ID Resolution** to ensure certificates are truly available in the system before activation, bypassing middlewared indexing lags.
-    - Updated WebSocket URI to `/api/current` and ensured full JSON-RPC 2.0 compliance for modern TrueNAS Scale versions.
-- **UI & UX**:
-    - Added **"System Locked"** status badge to explicitly show when the vault is locked after a restart.
-    - Improved API error handling to return `401 Unauthorized` for all `/api` routes, providing clear redirects to the Login page.
-    - Fixed "Certificates Missing" badge to correctly check the Default certificate pack.
-- **Reliability**:
-    - Implemented timestamped rolling backups for `config.yaml`, retaining the last 20 versions.
-    - Added defensive parsing for REST API Job results to prevent crashes.
+- **ClearPass Download**: Fixed 404/422 errors by correct URL formatting (`/clearpass.pfx`) and MIME type (`application/x-pkcs12`).
+- **Portainer UI**: Fixed variable typo preventing key path from displaying after detection.
+- **Config Corruption**: Resolved issue where config file could become corrupted/empty; added backup mechanism.
 
 ### Changed
-- **Code Cleanup**: Removed verbose debug logging and dead code from `truenas_handler.py` and `server.py` for production readiness.
-- **Middleware**: Hardened `check_auth` to enforce session security across all backend API endpoints.
-
-## [v1.0_build5] - 2026-01-03
-### Added
-- **Multi-Certificate Support**:
-    - **Certificate Manager**: New UI to upload, list, inspect, and delete multiple certificate packs.
-    - **Service Editor**: "Certificate Source" dropdown allows selecting specific packs per service.
-    - **Backend**: API endpoints for managing packs (`/api/certificates/*`) and inspecting on-disk certs.
-- **Renewal Status Tracking**:
-    - **Backend Persistence**: Stores the result (Success/Failure) and timestamp of the last renewal attempt.
-    - **Dashboard**: "Last Renewal" column displays status icons (✅/❌) and relative time (e.g., "5m ago").
-- **UI Improvements**:
-    - **Service Editor**: Fixed unresponsive buttons and dropdown bugs.
-    - **Certificate Inspection**: "View Default Certificate" button now shows detailed chain info (Leaf/Inter/Root).
-
-### Changed
-- **Certificate Validation**: Added strict validation using `cryptography` library.
-    - Ensures Private Key matches Certificate.
-    - Validates X.509 format.
-- **Auto-Chaining**: Backend automatically combines Certificate and Chain if uploaded separately.
-
-## [v1.0_build4] - 2026-01-02
-### Changed
-- **Build System**: Switched backup strategy from ZIP archives to uncompressed folders (`code_backup/`) for easier reference.
-- **Workflow**: Disabled auto-packaging. Builds are now triggered manually via `build.py`.
-- **Network**: Changed default port from `5000` to `5050` to avoid conflicts with MacOS AirPlay Receiver.
-
-## [v1.0_build3] - 2026-01-02
-### Changed
-- **Folder Structure**: Renamed `versions/` directory to `code_backup/`.
-- **Sanitization**: Improved build script to exclude `__pycache__` and `.DS_Store` from production builds.
-
-## [v1.0_build2] - 2026-01-02
-### Added
-- **Web GUI**: Launched Flask-based Dashboard.
-    - Drag & Drop Certificate Upload.
-    - Real-time Service Status.
-    - Live Logs Console.
-    - "Renew All" button.
-- **Docker**: Updated `Dockerfile` to expose port 5000 and run `app.server`.
-
-## [v1.0_build1] - 2026-01-02
-### Added
-- **Core**: Initial CLI implementation of `CertAutomator`.
-- **Handlers**: Added support for:
-    - Proxmox (API)
-    - TrueNAS (API)
-    - OPNSense (API)
-    - Syncthing (SSH)
-    - Wazuh (SSH)
-    - Heimdall (SSH)
-    - Aruba ClearPass (PFX Conversion)
-- **Infrastructure**: Established `dev`/`prod` folder structure.
+- **API Security**: Whitelisted `/api/download` endpoint to allow ClearPass to fetch certificates without session cookies (relies on one-time token).
+- **Backend Architecture**: Unified `ConfigManager` to handle encryption transparently.

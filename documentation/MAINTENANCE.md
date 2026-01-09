@@ -1,8 +1,8 @@
-# 🛠️ Maintenance & Lifecycle Guide
+# Maintenance & Lifecycle Guide
 
 This document outlines how to manage, update, and maintain CertAutomator in a production environment.
 
-## 📦 Docker Update Procedure
+## Docker Update Procedure
 
 CertAutomator is designed to be easily updated without losing your configuration.
 
@@ -25,7 +25,7 @@ CertAutomator is designed to be easily updated without losing your configuration
 
 ---
 
-## 💾 Data Persistence & Permissions
+## Data Persistence & Permissions
 
 All critical data is stored in **Docker Volumes** on your host machine.
 
@@ -42,7 +42,7 @@ All critical data is stored in **Docker Volumes** on your host machine.
 
 ---
 
-## 🛡️ Configuration Backups
+## Configuration Backups
 
 CertAutomator performs **automatic rolling backups** of your `config.yaml` every time you save a change.
 
@@ -52,7 +52,7 @@ CertAutomator performs **automatic rolling backups** of your `config.yaml` every
 
 ---
 
-## 🔄 Schema Evolution & Compatibility
+## Schema Evolution & Compatibility
 
 Future updates to CertAutomator may introduce new features or configuration settings.
 
@@ -61,7 +61,7 @@ Future updates to CertAutomator may introduce new features or configuration sett
 
 ---
 
-## 📦 Portable Deployment (Sharing)
+## Portable Deployment (Sharing)
 
 If you need to deploy CertAutomator on a new server or share it with others:
 
@@ -75,7 +75,7 @@ If you need to deploy CertAutomator on a new server or share it with others:
 
 ---
 
-## 🧹 Log Maintenance
+## Log Maintenance
 
 Logs are stored in `./app/logs/cert_automate.log`.
 - To view logs: `docker compose logs -f`
