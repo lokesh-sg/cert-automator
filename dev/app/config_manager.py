@@ -102,13 +102,29 @@ class ConfigManager:
             'clearpass': 'clearpass',
             'portainer': 'portainer',
             'linux': 'linux',
-            'webhook': 'webhook'
+            'webhook': 'webhook',
+            'omv': 'omv'
         }
         
+        # 1. Initialize if empty
         if not types:
-            self.config['service_types'] = DEFAULT_TYPES.copy()
+            types = DEFAULT_TYPES.copy()
+            self.config['service_types'] = types
             self.save_config()
-            return self.config['service_types']
+            return types
+
+        # 2. Merge missing defaults (Backward Compatibility)
+        updated = False
+        for key, value in DEFAULT_TYPES.items():
+            if key not in types:
+                types[key] = value
+                updated = True
+        
+        if updated:
+            self.config['service_types'] = types
+            self.save_config()
+
+        return types
             
         return types
 

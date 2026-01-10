@@ -1206,8 +1206,8 @@
 
                 let payload = { ...extra, name, host, type, cert_pack_id: certPack };
 
-                // SSH/Linux/Portainer/Syncthing
-                if (['linux', 'portainer', 'syncthing'].includes(type)) {
+                // SSH/Linux/Portainer/Syncthing/OMV
+                if (['linux', 'portainer', 'syncthing', 'omv'].includes(type)) {
                     const u = document.getElementById('ssh-user'); if (u) payload.user = u.value;
                     const p = document.getElementById('ssh-pass'); if (p) payload.password = p.value;
                     const c = document.getElementById('ssh-cert-path'); if (c) payload.remote_cert_path = c.value;
@@ -1375,23 +1375,34 @@
 
                 // SSH Section
                 const sshSec = document.getElementById('section-linux');
-                // Show SSH for Linux, Portainer, AND Syncthing
-                if (sshSec) sshSec.style.display = (['linux', 'portainer', 'syncthing'].includes(type) && type !== 'webhook') ? 'block' : 'none';
+                // Show SSH for Linux, Portainer, Syncthing, AND OMV
+                if (sshSec) sshSec.style.display = (['linux', 'portainer', 'syncthing', 'omv'].includes(type) && type !== 'webhook') ? 'block' : 'none';
 
                 // Webhook Section
                 const webhookSec = document.getElementById('section-webhook');
                 if (webhookSec) webhookSec.style.display = (type === 'webhook') ? 'block' : 'none';
 
-                // Syncthing specifics
+                // Syncthing & OMV specifics
                 const certLbl = document.getElementById('lbl-ssh-cert');
                 const keyDiv = document.getElementById('ssh-key-path').parentNode;
+                const certDiv = document.getElementById('ssh-cert-path').parentNode;
+                const cmdDiv = document.getElementById('ssh-cmd').parentNode;
 
                 if (type === 'syncthing') {
                     if (certLbl) certLbl.innerText = "Config Directory (Folder path)";
                     if (keyDiv) keyDiv.style.display = 'none';
+                    if (certDiv) certDiv.style.display = 'block';
+                    if (cmdDiv) cmdDiv.style.display = 'block';
+                } else if (type === 'omv') {
+                    // OMV: Hide Cert Path, Key Path, Cmd (All auto-handled)
+                    if (keyDiv) keyDiv.style.display = 'none';
+                    if (certDiv) certDiv.style.display = 'none';
+                    if (cmdDiv) cmdDiv.style.display = 'none';
                 } else {
                     if (certLbl) certLbl.innerText = "Remote Cert Path";
                     if (keyDiv) keyDiv.style.display = 'block';
+                    if (certDiv) certDiv.style.display = 'block';
+                    if (cmdDiv) cmdDiv.style.display = 'block';
                 }
 
                 const provSec = document.getElementById('section-provision');
@@ -1452,19 +1463,24 @@
                 current.host = host;
                 current.type = alias; // Save Alias
 
-                // SSH Fields
-                if (['linux', 'portainer', 'syncthing'].includes(type)) {
+                // SSH/Linux/Portainer/Syncthing/OMV
+                if (['linux', 'portainer', 'syncthing', 'omv'].includes(type) && type !== 'webhook') {
                     if (document.getElementById('ssh-user')) current.user = document.getElementById('ssh-user').value;
                     if (document.getElementById('ssh-pass')) current.password = "********"; // MASKED
-                    if (document.getElementById('ssh-cert-path')) current.remote_cert_path = document.getElementById('ssh-cert-path').value;
 
-                    if (type !== 'syncthing') {
-                        if (document.getElementById('ssh-key-path')) current.remote_key_path = document.getElementById('ssh-key-path').value;
-                    } else {
-                        delete current.remote_key_path; // Syncthing infers key path
+                    if (type !== 'omv') {
+                        if (document.getElementById('ssh-cert-path')) current.remote_cert_path = document.getElementById('ssh-cert-path').value;
                     }
 
-                    if (document.getElementById('ssh-cmd')) current.restart_cmd = document.getElementById('ssh-cmd').value;
+                    if (!['syncthing', 'omv'].includes(type)) {
+                        if (document.getElementById('ssh-key-path')) current.remote_key_path = document.getElementById('ssh-key-path').value;
+                    } else {
+                        delete current.remote_key_path; // Syncthing/OMV infers key path
+                    }
+
+                    if (type !== 'omv' && document.getElementById('ssh-cmd')) current.restart_cmd = document.getElementById('ssh-cmd').value;
+                    // OMV handles restart internally usually, but we could allow override later. 
+                    // For now, hide restart_cmd for OMV to keep it simple as per "Zero Config" goal.
                 }
 
                 // Webhook Fields
@@ -1546,7 +1562,7 @@
                 const el = document.getElementById(id);
                 if (el) el.oninput = updateJson;
             });
-            
+
             // ClearPass Inputs
             ['cp-client-id', 'cp-client-secret', 'cp-pfx-pass', 'cp-cb-host', 'cp-usage', 'cp-additional-nodes'].forEach(id => {
                 const el = document.getElementById(id);

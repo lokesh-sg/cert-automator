@@ -13,6 +13,7 @@ from .clearpass_handler import ArubaClearPassHandler
 from .portainer_handler import PortainerHandler
 from .linux_handler import GenericLinuxHandler
 from .webhook_handler import GenericWebhookHandler
+from .omv_handler import OpenMediaVaultHandler
 
 HANDLERS = {
     'proxmox': ProxmoxHandler,
@@ -24,7 +25,8 @@ HANDLERS = {
     'clearpass': ArubaClearPassHandler,
     'portainer': PortainerHandler,
     'linux': GenericLinuxHandler,
-    'webhook': GenericWebhookHandler
+    'webhook': GenericWebhookHandler,
+    'omv': OpenMediaVaultHandler
 }
 
 class CertManager:

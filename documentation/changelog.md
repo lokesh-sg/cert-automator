@@ -1,3 +1,11 @@
+## [v1.1.2] - 2026-01-09
+### Added
+- **OpenMediaVault Native Integration**: Introduced a fully automated, zero-configuration handler for OMV.
+    - **Zero-Touch**: No longer requires manual script installation. The handler auto-deploys a secure helper script via SSH.
+    - **Auto-Tagging**: Certificates are now tagged in the OMV database with "CertAutomator Renewed: [Timestamp]" for easy tracking.
+    - **"Split Brain" Protection**: Automatically detects and resolves scenarios where OMV's database and the actual Nginx files become out of sync.
+    - **Verification**: Strict post-renewal verification reads the remote file back to ensure the serial number matches the new certificate.
+
 ## [v1.1.1.20260109.11] - 2026-01-09
 ### Security
 - **Encryption-at-Rest**: Private keys are now stored using AES-256 encryption (`privkey.enc`) instead of plain text (`privkey.pem`). Keys are decrypted only in memory during renewal or inspection.

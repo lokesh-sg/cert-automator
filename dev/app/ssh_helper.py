@@ -48,8 +48,10 @@ class SSHHelper:
                 self.logger.info(f"Command executed successfully: {command}")
                 return True, out
             else:
-                self.logger.error(f"Command failed (Exit {exit_status}): {err}")
-                return False, err
+                # Combine out/err for visibility since some commands (or 2>&1) put errors in stdout
+                full_error = f"{out}\n{err}".strip()
+                self.logger.error(f"Command failed (Exit {exit_status}): {full_error}")
+                return False, full_error
         except Exception as e:
             self.logger.error(f"Failed to execute command on {self.host}: {e}")
             return False, str(e)

@@ -103,7 +103,9 @@ class BaseSSHHandler(CertificateHandler):
              success, output = ssh.execute_command(f"sudo -n {restart_cmd}")
         
         # If failed and password required, try sudo -S (stdin password)
-        if not success and ("password" in output.lower() or "permission" in output.lower()) and password:
+        # We try this regardless of the error message if sudo -n failed and we have a password,
+        # because some systems might give empty or localized errors.
+        if not success and password:
              self.logger.info("Command failed, trying sudo -S (with password)...")
              success, output = ssh.execute_command(f"sudo -S -p '' {restart_cmd}", stdin_input=password)
 

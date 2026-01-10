@@ -29,7 +29,7 @@
 ### Supported Integrations
 CertAutomator speaks the native API languages of your favorite services:
 - **Virtualization**: Proxmox VE
-- **Storage**: TrueNAS (SCALE & CORE)
+- **Storage**: TrueNAS (SCALE & CORE), OpenMediaVault (OMV)
 - **Network**: OPNsense, Aruba ClearPass
 - **Containers**: Portainer
 - **Generic**: SSH/SCP support for Syncthing, Wazuh, Heimdall, and Linux servers.
@@ -89,10 +89,11 @@ Visit `http://localhost:5050` to initialize your vault!
 
 ---
 
-## What's New in v1.1.0?
+## What's New in v1.1.2?
+- **OMV Native Integration**: Zero-config SSH updates for OpenMediaVault with auto-tagging.
+- **Portainer Auto-Detect**: SSH-based detection for both certificate and key paths (`--sslcert`, `--sslkey`).
 - **Live Timers**: Real-time renewal countdowns.
 - **Production Ready**: Switched to Gunicorn WSGI server.
-- **Auto-Heal**: UI automatically refreshes status after campaigns.
 - See [CHANGELOG.md](documentation/changelog.md) for full details.
 
 ---
