@@ -34,3 +34,6 @@ Once you have the credentials, configure your service in `cert-automate` as foll
 -   **Client ID**: Paste the Client ID from step 3.
 -   **Client Secret**: Paste the Client Secret from step 3.
 -   **Callback Host** (Optional): The IP address of the `cert-automate` server (so CPPM can reach back to download the certificate).
+-   **Additional Nodes** (Optional): Comma-separated list of IP addresses for other nodes in the cluster (e.g., `10.1.1.2, 10.1.1.3`).
+    -   The system will automatically generate unique download URLs for each node to prevent token conflicts.
+    -   Certificates will be pushed to the **Publisher** (Primary Host) and all **Subscribers** (Additional Nodes) in sequence.

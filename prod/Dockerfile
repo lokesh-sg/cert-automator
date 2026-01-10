@@ -1,5 +1,3 @@
-# Production Dockerfile for CertAutomator
-# Maintenance Update: 2026-01-09
 FROM python:3.11-slim-bookworm
 
 WORKDIR /app

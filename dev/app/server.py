@@ -536,17 +536,31 @@ def inspect_cert():
     pack_name = request.args.get('pack')
     
     try:
-        cert_path, key_path = manager.get_cert_paths(pack_name)
-    except Exception as e:
-         return jsonify({"found": False, "message": str(e)})
+        # Use manager to check if valid (covers .enc and .pem)
+        if not manager.validate_certs(pack_name):
+             return jsonify({"found": False, "message": f"No certificates found for pack '{pack_name or 'Default'}'."})
 
-    if not os.path.exists(cert_path) or not os.path.exists(key_path):
-        return jsonify({"found": False, "message": f"No certificates found for pack '{pack_name or 'Default'}'."})
+        cert_path, key_path = manager.get_cert_paths(pack_name)
         
-    try:
+        # Read Cert (Always Plain)
         with open(cert_path, 'rb') as f: cert_data = f.read()
-        with open(key_path, 'rb') as f: key_data = f.read()
         
+        # Read Key (Maybe Encrypted)
+        base_dir = os.path.dirname(cert_path)
+        enc_key_path = os.path.join(base_dir, "privkey.enc")
+        
+        try:
+            if os.path.exists(enc_key_path):
+                 # Decrypt for Inspection
+                 with open(enc_key_path, 'rb') as f: enc_data = f.read()
+                 decrypted = manager.config_mgr.crypto.decrypt_data(enc_data, manager.config_mgr.master_password)
+                 key_data = decrypted.get('key').encode('utf-8') # Back to bytes
+            else:
+                 # Plain Text Fallback
+                 with open(key_path, 'rb') as f: key_data = f.read()
+        except Exception as e:
+             return jsonify({"found": True, "valid": False, "message": f"Failed to decrypt key: {str(e)}"})
+
         cert_obj = validator.load_cert(cert_data)
         key_obj = validator.load_key(key_data)
         
@@ -564,10 +578,10 @@ def inspect_cert():
             "valid": True,
             "key_match": match,
             "chain_length": chain_len,
-            "details": chain_details # Now a list
+            "details": chain_details
         })
     except Exception as e:
-        return jsonify({"found": True, "valid": False, "message": str(e)})
+        return jsonify({"found": False, "message": str(e)})
 
 @app.route('/api/services/add', methods=['POST'])
 def add_service():

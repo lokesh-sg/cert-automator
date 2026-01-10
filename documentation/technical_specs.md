@@ -1,6 +1,6 @@
 # Technical Specifications - Certificate Automation Tool
 
-**Version**: v1.1.0.20260109.03
+**Version**: v1.1.1.20260109.11
 **Date**: 2026-01-06
 **Author**: Lokesh G
 
@@ -35,7 +35,12 @@ The application employs "Smart Path Resolution" to seamlessly handle both Local 
 This ensures that mapping volumes to `/certs` in `docker-compose.yml` works out-of-the-box, while local `run_dev.sh` uses local folders.
 ```
 
-## 2. API Reference
+## 3. Security Specifications
+- **Private Key Storage**: Private keys are stored as `privkey.enc` (AES-256 encrypted) in the certificate pack directory.
+- **Config Storage**: Service credentials in `config.yaml` are encrypted using Fernet (AES-128).
+- **Runtime Security**: Decryption occurs only in memory during validation or renewal.
+
+## 4. API Reference
 The application exposes a REST API on port `5050`.
 
 ### Status
@@ -72,14 +77,14 @@ The application exposes a REST API on port `5050`.
 - **GET** `/api/logs`
 - **Response**: Returns last 100 lines of application log.
 
-## 3. Handler Implementation Guide
+## 5. Handler Implementation Guide
 To add a new service `MyService`:
 1.  Create `dev/app/myservice_handler.py`.
 2.  Inherit from `CertificateHandler`.
 3.  Implement `renew(self, cert_path, key_path) -> bool`.
 4.  Register in `HANDLERS` dict in `dev/app/cert_manager.py`.
 
-## 4. Environment Setup
+## 6. Environment Setup
 ### Prerequisites
 - Python 3.11+
 - Docker & Docker Compose

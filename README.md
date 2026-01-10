@@ -16,7 +16,8 @@
 ## Key Features
 
 ### Secure by Design
-- **Encrypted Vault**: All credentials and configs are AES-encrypted on disk.
+- **Encryption-at-Rest**: Private keys are AES-256 encrypted (`privkey.enc`) using a master password.
+- **Strict Permissions**: Fallback to 0600 permissions if encryption is disabled.
 - **Hardened**: Runs as non-root (UID 1000), includes CSRF protection, and uses HttpOnly cookies.
 - **Emergency Access**: Generates a one-time-use emergency token for lockout recovery.
 

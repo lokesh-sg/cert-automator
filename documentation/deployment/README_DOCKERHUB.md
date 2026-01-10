@@ -12,7 +12,7 @@ CertAutomator is a powerful, secure, and user-friendly web application designed 
 ## Key Features
 
 ### Secure by Design
-- **Encrypted Local Vault**: Your service configurations and credentials are encrypted on disk using a master password.
+- **Encrypted Local Vault**: All credentials, configs, and **Private Keys** (`privkey.enc`) are AES-encrypted on disk.
 - **Hardened Sessions**: Built-in CSRF protection, HttpOnly cookies, and strict session management.
 - **Emergency Access**: Every deployment generates a unique one-time Emergency Reset Token in the logs.
 

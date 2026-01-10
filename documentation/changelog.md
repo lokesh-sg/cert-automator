@@ -1,3 +1,11 @@
+## [v1.1.1.20260109.11] - 2026-01-09
+### Security
+- **Encryption-at-Rest**: Private keys are now stored using AES-256 encryption (`privkey.enc`) instead of plain text (`privkey.pem`). Keys are decrypted only in memory during renewal or inspection.
+- **Strict Fallback**: If encryption fails, keys fall back to `0600` permissions (Owner Read/Write only).
+
+### Fixed
+- **Certificate Inspector**: Fixed an issue where the "Magnifying Glass" tool failed to view certificates due to the missing `privkey.pem` file. It now transparently decrypts and inspects the key.
+
 ## [v1.1.0.20260109.09] - 2026-01-09
 - **Core Update (Smart Path Resolution)**: Implemented "Smart Path Detection" logic which automatically prioritizes Docker Volume mounts (`/certs`, `/backup`) if present, even if environment variables are missing. This solves path mismatch issues between local dev (relative `certs/`) and production Docker (absolute `/certs`).
 - **Documentation**: Updated `technical_specs.md` and `README.md` to document the new path resolution hierarchy.

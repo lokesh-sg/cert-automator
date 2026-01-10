@@ -1,5 +1,7 @@
 import logging
 import os
+import tempfile
+import time
 from .config_manager import ConfigManager
 from .proxmox_handler import ProxmoxHandler
 from .truenas_handler import TrueNASHandler
@@ -94,7 +96,10 @@ class CertManager:
 
     def validate_certs(self, cert_pack_name=None):
         cert_path, key_path = self.get_cert_paths(cert_pack_name)
-        return os.path.exists(cert_path) and os.path.exists(key_path)
+        # Check for standard PEM key OR Encrypted key
+        base_dir = os.path.dirname(cert_path)
+        has_key = os.path.exists(key_path) or os.path.exists(os.path.join(base_dir, "privkey.enc"))
+        return os.path.exists(cert_path) and has_key
 
     def list_cert_packs(self):
         """Returns a list of available certificate packs."""
@@ -127,8 +132,28 @@ class CertManager:
         with open(os.path.join(pack_dir, "fullchain.pem"), "wb") as f:
             f.write(cert_content)
             
-        with open(os.path.join(pack_dir, "privkey.pem"), "wb") as f:
-            f.write(key_content)
+        # Security: Encrypt Private Key at Rest
+        # We use the ConfigManager's crypto utility (AES-256)
+        try:
+            # Encrypt key content
+            # Ensure key is string for JSON serialization inside encrypt_data
+            key_str = key_content.decode('utf-8')
+            encrypted_bytes = self.config_mgr.crypto.encrypt_data({"key": key_str}, self.config_mgr.master_password)
+            
+            with open(os.path.join(pack_dir, "privkey.enc"), "wb") as f:
+                f.write(encrypted_bytes)
+                
+            # Cleanup legacy plain text key if exists (Migration)
+            legacy_key = os.path.join(pack_dir, "privkey.pem")
+            if os.path.exists(legacy_key):
+                os.remove(legacy_key)
+                
+        except Exception as e:
+            self.logger.error(f"Failed to encrypt private key: {e}. Fallback to plain text (Protected 0600).")
+            # Fallback (Safety Net)
+            with open(os.path.join(pack_dir, "privkey.pem"), "wb") as f:
+                f.write(key_content)
+            os.chmod(os.path.join(pack_dir, "privkey.pem"), 0o600)
             
         return safe_name
 
@@ -173,10 +198,46 @@ class CertManager:
             return {"success": False, "message": f"Unknown service type: {svc_type}"}
 
         cert_path, key_path = self.get_cert_paths(cert_pack)
+
         try:
-            handler = handler_cls(target)
-            result = handler.renew(cert_path, key_path)
+            # Security: Decrypt key on-the-fly if encrypted
+            temp_key_file = None
+            base_dir = os.path.dirname(cert_path)
+            enc_key_path = os.path.join(base_dir, "privkey.enc")
             
+            try:
+                if os.path.exists(enc_key_path):
+                    self.logger.info("Decrypting private key for renewal session...")
+                    with open(enc_key_path, 'rb') as f:
+                        enc_data = f.read()
+                    
+                    # Decrypt
+                    decrypted_json = self.config_mgr.crypto.decrypt_data(enc_data, self.config_mgr.master_password)
+                    raw_key = decrypted_json.get('key')
+                    
+                    # Write to Secure Temp File
+                    fd, temp_key_path = tempfile.mkstemp()
+                    with os.fdopen(fd, 'w') as tmp:
+                        tmp.write(raw_key)
+                    
+                    # Use this temp path as the key path
+                    key_path = temp_key_path
+                    temp_key_file = temp_key_path # Marker for cleanup
+                
+                # Legacy/Fallback: key_path remains pointing to 'privkey.pem' if 'privkey.enc' missing.
+                
+                handler = handler_cls(target)
+                result = handler.renew(cert_path, key_path)
+                
+            finally:
+                # Secure Cleanup
+                if temp_key_file and os.path.exists(temp_key_file):
+                    try:
+                        os.remove(temp_key_file)
+                        self.logger.info("Secure cleanup: Temporary decrypted key removed.")
+                    except Exception as e:
+                        self.logger.error(f"CRITICAL: Failed to delete temp key file {temp_key_file}: {e}")
+                
             # Normalize return to dict
             response = {}
             if isinstance(result, bool):
@@ -191,7 +252,7 @@ class CertManager:
                 if 'message' not in response: response['message'] = "Operation completed"
             else:
                  return {"success": False, "message": f"Unexpected return type from handler: {type(result)}"}
-
+    
             # Auto-Check after success
             if response.get('success'):
                 self.logger.info(f"Renewal success for {service_name}. Checking propagation...")

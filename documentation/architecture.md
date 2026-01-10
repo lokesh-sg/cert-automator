@@ -41,8 +41,10 @@ graph TD
     - **Polymorphism**: The controller does not need to know *how* a service renews, only that it *can*.
 
 ## 4. Security Considerations
-- **Encrypted Storage**: Credentials in `config.yaml` are encrypted at rest using Fernet symmetric encryption (AES-128), protected by a master password.
-- **Least Privilege**: The container runs as a non-root user (`appuser`, UID 1000) to minimize attack surface.
+-   **Encrypted Storage**: 
+    -   Credentials in `config.yaml` are encrypted at rest using Fernet symmetric encryption (AES-128).
+    -   **Private Keys**: Private keys (`privkey.pem`) are stored as **AES-256 encrypted blobs** (`privkey.enc`) on disk. They are transparently decrypted only in memory during renewal or inspection.
+-   **Least Privilege**: The container runs as a non-root user (`appuser`, UID 1000) to minimize attack surface.
 - **Production Hardened**: Uses Gunicorn (WSGI) interface and strict input validation to prevent directory traversal attacks.
 - **SSH Keys**: Uses standard RSA keys for SSH access, avoiding password usage where possible.
 - **TLS Verification**: Defaults to strict checking, but permits `verify=False` for self-hosted intranet services.
