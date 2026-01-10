@@ -255,15 +255,19 @@ class CertManager:
     
             # Auto-Check after success
             if response.get('success'):
-                self.logger.info(f"Renewal success for {service_name}. Checking propagation...")
+                self.logger.info(f"Renewal success for {service_name}. verifying propagation...")
                 import time
-                time.sleep(2) # Give service a moment to restart/reload
+                time.sleep(3) # Increased wait for service restart
                 
+                # Force a check which updates config
                 check_res = self.check_service_expiry(service_name)
+                
                 if check_res.get('success'):
-                    self.logger.info(f"Post-renewal check passed: {check_res.get('days_remaining')} days remaining.")
+                    # Double conversion to ensure UI picks it up
+                    days = check_res.get('days_remaining')
+                    self.logger.info(f"Post-renewal verified: {days} days remaining.")
                 else:
-                    self.logger.warning(f"Post-renewal check failed: {check_res.get('message')}")
+                    self.logger.warning(f"Post-renewal verification failed: {check_res.get('message')}")
             
             # Persist Status to Config
             import datetime
@@ -313,8 +317,9 @@ class CertManager:
 
     def renew_all(self):
         """Renews all services."""
-        if not self.validate_certs():
-            return {"error": "Certificates not found"}
+        # Fix: Do not block on global 'Default' cert check. Let each service check its own pack.
+        # if not self.validate_certs():
+        #    return {"error": "Certificates not found"}
 
         results = {}
         services = self.get_services()
