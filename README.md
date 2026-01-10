@@ -103,4 +103,6 @@ Issues and Pull Requests are welcome!
 *Built with ❤️ for privacy and automation.*
 
 
-##*Note: This project was developed with the assistance of AI to accelerate code generation and documentation.*
+---
+**Note:** This project was developed with the assistance of AI to accelerate code generation and documentation.
+
