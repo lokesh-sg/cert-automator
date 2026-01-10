@@ -102,4 +102,5 @@ Visit `http://localhost:5050` to initialize your vault!
 Issues and Pull Requests are welcome!
 *Built with ❤️ for privacy and automation.*
 
-*Note: This project was developed with the assistance of AI to accelerate code generation and documentation.*
+
+##*Note: This project was developed with the assistance of AI to accelerate code generation and documentation.*
