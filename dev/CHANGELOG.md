@@ -1,3 +1,7 @@
+## [v1.1.0.20260109.09] - 2026-01-09
+- **Core Update (Smart Path Resolution)**: Implemented "Smart Path Detection" logic which automatically prioritizes Docker Volume mounts (`/certs`, `/backup`) if present, even if environment variables are missing. This solves path mismatch issues between local dev (relative `certs/`) and production Docker (absolute `/certs`).
+- **Documentation**: Updated `technical_specs.md` and `README.md` to document the new path resolution hierarchy.
+
 ## [v1.1.0.20260109.08] - 2026-01-09
 - **Bug Fix (ClearPass)**: Fixed a logic error in multi-node updates where the file download token was consumed by the first node (Publisher), causing subsequent Subscribers to fail with 422 errors. The system now generates a unique, fresh download URL for each node in the cluster.
 

@@ -33,13 +33,41 @@ app.temp_registry = {}
 # Note: Removed CORS(app) to enforce Same-Origin security. API is accessed from same domain.
 
 # Configuration
+def resolve_path(env_key, default_relative, docker_absolute=None):
+    """
+    Resolves a path with priority:
+    1. Environment Variable (Explicit)
+    2. Docker Mount Point (if exists & absolute)
+    3. Local Relative Path (Default)
+    """
+    val = os.getenv(env_key)
+    if val:
+        return os.path.abspath(val)
+    
+    # Smart Fallback: Check if we are running in a container with standard mounts
+    if docker_absolute and os.path.exists(docker_absolute) and os.path.isdir(docker_absolute):
+        # Verify write access to be sure
+        if os.access(docker_absolute, os.W_OK):
+            return docker_absolute
+            
+    # Default to local relative path for Dev
+    return os.path.abspath(default_relative)
+
 CONFIG_PATH = os.path.abspath(os.getenv('CONFIG_PATH', 'config.yaml'))
-CERT_DIR = os.path.abspath(os.getenv('CERT_DIR', 'certs')) # Resolves to /app/certs if relative, or /certs if absolute
-BACKUP_DIR = os.path.abspath(os.getenv('BACKUP_DIR', 'backups'))
+
+# Certs: Env -> /certs (Docker) -> certs (Local)
+CERT_DIR = resolve_path('CERT_DIR', 'certs', '/certs')
+
+# Backups: Env -> /backup (Docker) -> backups (Local)
+# Note: Docker Compose maps ./backup:/backup (Singular)
+BACKUP_DIR = resolve_path('BACKUP_DIR', 'backups', '/backup')
+
 _log_env = os.getenv('LOG_FILE')
 if _log_env:
     LOG_FILE = os.path.abspath(_log_env)
 else:
+    # Logs: Docker maps ./logs:/app/logs, so default 'logs' in 'app' works for both if configured that way.
+    # But usually LOG_DIR env is set.
     _log_dir = os.path.abspath(os.getenv('LOG_DIR', 'logs'))
     LOG_FILE = os.path.join(_log_dir, "cert_automate.log")
 
@@ -71,7 +99,9 @@ def is_auth_configured():
 # Initialize Manager (Starts LOCKED unless env var provided)
 master_password = os.getenv('MASTER_PASSWORD') # Initialize Cert Manager
 logger = logging.getLogger(__name__)
-logger.info(f"CERT_DIR resolved to: {CERT_DIR}")
+
+
+
 app.cert_manager = CertManager(CONFIG_PATH, CERT_DIR, master_password=master_password, backup_dir=BACKUP_DIR)
 # Restore backward compatibility for existing code references
 manager = app.cert_manager
@@ -94,6 +124,14 @@ file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(mes
 root_logger = logging.getLogger()
 root_logger.addHandler(file_handler)
 root_logger.setLevel(logging.INFO)
+
+# Startup Logs for Path Debugging
+logger.info(f"--- PATH CONFIGURATION ---")
+logger.info(f"CERT_DIR:   {CERT_DIR}")
+logger.info(f"BACKUP_DIR: {BACKUP_DIR}")
+logger.info(f"LOG_FILE:   {LOG_FILE}")
+logger.info(f"CONFIG:     {CONFIG_PATH}")
+logger.info(f"--------------------------")
 
 # --- Middleware ---
 @app.before_request

@@ -11,18 +11,28 @@
 │   ├── app/
 │   │   ├── static/          # CSS/JS
 │   │   ├── templates/       # HTML
-│   │   ├── server.py        # Flask App
+│   │   ├── server.py        # Flask App (Contains Smart Path Resolution)
 │   │   ├── wsgi.py          # Production Entrypoint
 │   │   ├── cert_manager.py  # Logic Core
 │   │   └── *_handler.py     # Service Adapters
 │   ├── config.yaml          # Service Configuration
-│   ├── Dockerfile           # Multi-stage build (Non-root, Gunicorn)
+│   ├── Dockerfile           # Multi-stage build (Non-root, Gunicorn, WORKDIR /app)
 │   └── docker-compose.yml   # Orchestration
 ├── prod/                    # Stable Deployment Target
 ├── code_backup/             # Unzipped archives of previous builds
 ├── input_certificates/      # Hot-folder for certs
 └── build_scripts/
     └── build.py             # Packaging Logic
+
+## 2. Path Configuration Logic
+The application employs "Smart Path Resolution" to seamlessly handle both Local Development and Docker environments without manual configuration.
+
+**Priority Order:**
+1.  **Environment Variable** (e.g., `CERT_DIR=/custom/path`) - Highest priority.
+2.  **Docker Mounts** (Auto-Detection) - Checks if standard mounts `/certs` or `/backup` exist and are writable.
+3.  **Local Relative** (Fallback) - Uses `./certs` or `./backups` relative to the application root.
+
+This ensures that mapping volumes to `/certs` in `docker-compose.yml` works out-of-the-box, while local `run_dev.sh` uses local folders.
 ```
 
 ## 2. API Reference
