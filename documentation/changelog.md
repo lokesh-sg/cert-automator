@@ -1,4 +1,4 @@
-## [v1.1.2] - 2026-01-09
+## [v1.1.2.20260109.12] - 2026-01-09
 ### Added
 - **OpenMediaVault Native Integration**: Introduced a fully automated, zero-configuration handler for OMV.
     - **Zero-Touch**: No longer requires manual script installation. The handler auto-deploys a secure helper script via SSH.
