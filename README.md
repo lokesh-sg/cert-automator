@@ -91,6 +91,7 @@ Visit `http://localhost:5050` to initialize your vault!
 
 ## What's New in v1.1.2?
 - **OMV Native Integration**: Zero-config SSH updates for OpenMediaVault with auto-tagging.
+- **Wazuh Dashboard Integration**: Full automation with permission handling and config auto-correction.
 - **Portainer Auto-Detect**: SSH-based detection for both certificate and key paths (`--sslcert`, `--sslkey`).
 - **Live Timers**: Real-time renewal countdowns.
 - **Production Ready**: Switched to Gunicorn WSGI server.

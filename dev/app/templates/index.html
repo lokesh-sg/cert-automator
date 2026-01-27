@@ -1206,8 +1206,8 @@
 
                 let payload = { ...extra, name, host, type, cert_pack_id: certPack };
 
-                // SSH/Linux/Portainer/Syncthing/OMV
-                if (['linux', 'portainer', 'syncthing', 'omv'].includes(type)) {
+                // SSH/Linux/Portainer/Syncthing/OMV/Wazuh
+                if (['linux', 'portainer', 'syncthing', 'omv', 'wazuh'].includes(type)) {
                     const u = document.getElementById('ssh-user'); if (u) payload.user = u.value;
                     const p = document.getElementById('ssh-pass'); if (p) payload.password = p.value;
                     const c = document.getElementById('ssh-cert-path'); if (c) payload.remote_cert_path = c.value;
@@ -1375,8 +1375,8 @@
 
                 // SSH Section
                 const sshSec = document.getElementById('section-linux');
-                // Show SSH for Linux, Portainer, Syncthing, AND OMV
-                if (sshSec) sshSec.style.display = (['linux', 'portainer', 'syncthing', 'omv'].includes(type) && type !== 'webhook') ? 'block' : 'none';
+                // Show SSH for Linux, Portainer, Syncthing, OMV, and Wazuh
+                if (sshSec) sshSec.style.display = (['linux', 'portainer', 'syncthing', 'omv', 'wazuh'].includes(type) && type !== 'webhook') ? 'block' : 'none';
 
                 // Webhook Section
                 const webhookSec = document.getElementById('section-webhook');
@@ -1463,8 +1463,8 @@
                 current.host = host;
                 current.type = alias; // Save Alias
 
-                // SSH/Linux/Portainer/Syncthing/OMV
-                if (['linux', 'portainer', 'syncthing', 'omv'].includes(type) && type !== 'webhook') {
+                // SSH/Linux/Portainer/Syncthing/OMV/Wazuh
+                if (['linux', 'portainer', 'syncthing', 'omv', 'wazuh'].includes(type) && type !== 'webhook') {
                     if (document.getElementById('ssh-user')) current.user = document.getElementById('ssh-user').value;
                     if (document.getElementById('ssh-pass')) current.password = "********"; // MASKED
 
@@ -1536,6 +1536,20 @@
                     } else if (type === 'portainer') {
                         if (cmdInput.value === 'systemctl reload nginx') {
                             cmdInput.value = 'docker restart portainer';
+                        }
+                    } else if (type === 'wazuh') {
+                        if (cmdInput.value === 'systemctl reload nginx' || cmdInput.value === 'docker restart portainer') {
+                            cmdInput.value = 'systemctl restart wazuh-dashboard';
+                        }
+
+                        const certInput = document.getElementById('ssh-cert-path');
+                        const keyInput = document.getElementById('ssh-key-path');
+
+                        if (certInput && (certInput.value === '/etc/ssl/certs/fullchain.pem' || certInput.value === '')) {
+                            certInput.value = '/etc/wazuh-dashboard/certs/fullchain.pem';
+                        }
+                        if (keyInput && (keyInput.value === '/etc/ssl/private/privkey.pem' || keyInput.value === '')) {
+                            keyInput.value = '/etc/wazuh-dashboard/certs/privkey.pem';
                         }
                     }
                 }
