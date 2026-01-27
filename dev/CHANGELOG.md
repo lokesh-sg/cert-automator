@@ -1,3 +1,10 @@
+## [v1.1.2.20260127.13] - 2026-01-27
+### Added
+- **Wazuh Dashboard Integration**: Full automated support for Wazuh Dashboard certificate renewals.
+    - **Robust Upload**: Uses safe `sudo` fallback (upload to `/tmp`, move to `/etc/wazuh-dashboard/certs/`) to handle strict directory permissions.
+    - **Permission Management**: Automatically applies correct ownership (`wazuh-dashboard:wazuh-dashboard`) and permissions (`0500`/`0440`) to certificates and directories.
+    - **Config Auto-Correction**: Intelligent regex-based scanner that reads `/etc/wazuh-dashboard/opensearch_dashboards.yml` and updates `server.ssl.key` / `server.ssl.certificate` paths if they mismatch, preserving all other configuration.
+
 ## [v1.1.2.20260109.12] - 2026-01-09
 ### Added
 - **OpenMediaVault Native Integration**: Introduced a fully automated, zero-configuration handler for OMV.
