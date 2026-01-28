@@ -637,7 +637,7 @@
                             ${healthHtml}
                         </td>
                         <td style="padding: 1rem; border-bottom: 1px solid var(--border-glass);">
-                            ${renewalHtml}
+                            <div id="status-${svc.name}" style="min-height: 24px;">${renewalHtml}</div>
                         </td>
                         <td style="padding: 1rem; border-bottom: 1px solid var(--border-glass); text-align:right;">
                             <div style="display:flex; gap: 8px; justify-content: flex-end; align-items: center;">
@@ -689,18 +689,17 @@
         async function checkService(name) {
             const btn = document.getElementById(`check-btn-${name}`);
             if (btn) {
-                const originalText = btn.innerHTML;
                 btn.disabled = true;
-                btn.innerHTML = '...';
+                btn.classList.add('processing');
             }
-            showToast(`Checking ${name}...`); // Info toast
+            showToast(`Checking ${name}...`, "info");
             try {
                 const res = await secureFetch(`${API_BASE}/check/${name}`, { method: 'POST' });
                 const data = await res.json();
 
                 if (data.success) {
-                    showToast(`Check successful: Valid for ${data.days_remaining} days`, "success");
-                    fetchStatus(); // Refresh list to show new status
+                    showToast(`Check successful: ${data.days_remaining}d remaining`, "success");
+                    fetchStatus(); // Refresh list
                 } else {
                     showToast(`Check failed: ${data.message}`, "error");
                 }
@@ -709,33 +708,29 @@
             } finally {
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = '🔍';
+                    btn.classList.remove('processing');
                 }
             }
         }
 
         async function renewService(name) {
             const statusEl = document.getElementById(`status-${name}`);
-            const row = document.querySelector(`tr[data-service="${name}"]`); // If in list view
+            const btn = document.querySelector(`tr[data-service="${name}"] .renew`);
 
-            // Assuming this function is called from the card view primarily
-            // Use the global 'currentServices' (from loadStatus mostly, or fetch fresh)
-            // Ideally we pass the full service object or find it.
-            // Let's find the service object from the DOM or global state if possible.
-            // Since init calls fetchStatus -> renderServices, 'currentServices' might not be populated if we didn't open the modal.
-            // But we can find host from the DOM or just fetch it.
-            // For the modal message, we need the host. 
-            // Let's assume we can get it from the card or just use 'OPNsense Firewall'.
-
-            statusEl.textContent = "Renewing...";
-            statusEl.className = "status-text processing";
+            if (statusEl) {
+                statusEl.innerHTML = `<span class="status-tag pending">RENEWING...</span>`;
+            }
+            if (btn) btn.classList.add('processing');
 
             try {
                 const req = await secureFetch(`${API_BASE}/renew/${name}`, { method: 'POST' });
                 const res = await req.json();
 
-                statusEl.textContent = res.success ? "Success" : "Failed";
-                statusEl.className = res.success ? "status-text success" : "status-text error";
+                if (statusEl) {
+                    statusEl.innerHTML = res.success
+                        ? `<span class="status-tag success">SUCCESS</span>`
+                        : `<span class="status-tag error">FAILED</span>`;
+                }
 
                 // Handle Rich Response (Global)
                 if (res.success && res.manual_activation) {

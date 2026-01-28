@@ -417,6 +417,21 @@ h2 {
     transform: scale(0.92) translateY(0);
 }
 
+.cyber-icon-btn.processing svg {
+    animation: rotateCyber 2s linear infinite;
+    opacity: 0.6;
+}
+
+@keyframes rotateCyber {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* --- Status Tags (Rectangular) --- */
 .status-tag {
     display: inline-flex;
