@@ -320,12 +320,13 @@ def get_status():
         return jsonify({"locked": True})
         
     services = manager.config_mgr.get_services()
-    certs_ready = manager.check_certificates_ready()
+    cert_status = manager.check_certificates_status()
     return jsonify({
         "locked": False,
-        "certs_ready": certs_ready,
+        "certs_ready": cert_status["default_ready"],
+        "cert_details": cert_status,
         "services": services,
-        "is_unlocked": not manager.is_locked # redundancy for clarity
+        "is_unlocked": not manager.is_locked
     })
 
 @app.route('/api/health', methods=['GET'])

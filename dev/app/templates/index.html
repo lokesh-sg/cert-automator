@@ -14,140 +14,213 @@
 </head>
 
 <body>
-    <div class="app-container">
-        <header>
-            <div class="logo">
-                <div class="logo-icon">
-                    <!-- Standardized Wide App Icon -->
-                    <svg width="48" height="40" viewBox="0 0 48 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Wider Background Rect -->
-                        <rect width="48" height="40" rx="12" fill="url(#logo-gradient)" />
-
-                        <!-- Centered White Shield -->
-                        <path transform="translate(4, 0)"
-                            d="M20 31C20 31 29 26.5 29 18V11L20 7L11 11V18C11 26.5 20 31 20 31Z" fill="white"
-                            fill-opacity="0.95" />
-
-                        <!-- Checkmark -->
-                        <path transform="translate(4, 0)" d="M16 19L18.5 21.5L23.5 16.5"
-                            stroke="url(#checkmark-gradient)" stroke-width="2.5" stroke-linecap="round"
-                            stroke-linejoin="round" />
-
-                        <defs>
-                            <linearGradient id="logo-gradient" x1="0" y1="0" x2="48" y2="40"
-                                gradientUnits="userSpaceOnUse">
-                                <stop stop-color="#2563eb" /> <!-- Blue 600 -->
-                                <stop offset="1" stop-color="#7c3aed" /> <!-- Violet 600 -->
-                            </linearGradient>
-                            <linearGradient id="checkmark-gradient" x1="16" y1="16" x2="24" y2="22"
-                                gradientUnits="userSpaceOnUse">
-                                <stop stop-color="#2563eb" />
-                                <stop offset="1" stop-color="#7c3aed" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                </div>
-                <div class="logo-text">
-                    <span class="logo-prefix">Cert</span><span class="logo-suffix">Automator</span>
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <nav class="app-sidebar">
+            <div class="sidebar-header">
+                <div class="logo" style="display: flex; align-items: center; gap: 1rem;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; background: rgba(0, 240, 255, 0.08); border: 2px solid rgba(0, 240, 255, 0.4); border-radius: 8px; padding: 5px; box-shadow: 0 0 25px rgba(0, 240, 255, 0.35), inset 0 0 10px rgba(0, 240, 255, 0.15); flex-shrink: 0;">
+                        <img src="/static/app_icon.png" alt="Logo"
+                            style="width: 100%; height: 100%; border-radius: 4px;">
+                    </div>
+                    <div class="app-logo-text" style="font-size: 1.1rem; letter-spacing: 0.05em;">
+                        Cert<span>Automator</span></div>
                 </div>
             </div>
-            <div class="header-controls">
-                <button id="settings-btn" class="secondary-btn" title="Settings"
-                    style="margin-right: 0.5rem; padding: 0.5rem 0.8rem;">
-                    ⚙️
-                </button>
-                <button id="view-cert-btn" class="secondary-btn" style="margin-right: 1rem;">
-                    View Default Certificate
-                </button>
-                <div id="cert-status" class="status-badge pending">
-                    Checking Certificates...
-                </div>
+
+            <div class="nav-links">
+                <a href="#" class="nav-item active">
+                    <div class="nav-item-icon">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </div>
+                    <span>Dashboard</span>
+                </a>
+                <a href="javascript:void(0)"
+                    onclick="document.getElementById('services-section').scrollIntoView({behavior: 'smooth'})"
+                    class="nav-item">
+                    <div class="nav-item-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                    </div>
+                    <span>Services</span>
+                </a>
+                <a href="javascript:void(0)"
+                    onclick="document.getElementById('logs-section').scrollIntoView({behavior: 'smooth'})"
+                    class="nav-item">
+                    <div class="nav-item-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M4 17l6-6-6-6M12 19h8"></path>
+                        </svg>
+                    </div>
+                    <span>Logs</span>
+                </a>
+                <div style="flex:1"></div> <!- Spacer ->
+                    <a href="javascript:void(0)" id="sidebar-settings-btn"
+                        onclick="document.getElementById('settings-btn').click()" class="nav-item">
+                        <div class="nav-item-icon">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path
+                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                                </path>
+                            </svg>
+                        </div>
+                        <span>Settings</span>
+                    </a>
             </div>
-        </header>
 
-        <main>
-            <section class="upload-section">
-                <h2>Import Default Certificate</h2>
-                <div class="upload-grid">
-                    <div class="upload-card">
-                        <label>Certificate (PEM)</label>
-                        <input type="file" id="file-cert" accept=".pem,.crt">
-                        <small class="hint">Required</small>
-                    </div>
-                    <div class="upload-card">
-                        <label>Private Key (PEM)</label>
-                        <input type="file" id="file-key" accept=".pem,.key">
-                        <small class="hint">Required</small>
-                    </div>
-                    <div class="upload-card">
-                        <label>Intermediate CA (Optional)</label>
-                        <input type="file" id="file-inter" accept=".pem,.crt">
-                        <small class="hint">Recommended</small>
-                    </div>
-                    <div class="upload-card">
-                        <label>Root CA (Optional)</label>
-                        <input type="file" id="file-root" accept=".pem,.crt">
-                        <small class="hint">Optional</small>
-                    </div>
+            <div class="sidebar-footer">
+                <p>&copy; 2026 Lokesh G.</p>
+                <p style="opacity: 0.6; font-size: 0.75rem;">{{ app_version }}</p>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Controls (formerly Header) -->
+            <header style="border-bottom: none; margin-bottom: 2rem;">
+                <!-- Left Side: Hero Title or Breadcrumb -->
+                <div>
+                    <h1 style="font-size: 1.75rem; font-weight: 700;">Dashboard</h1>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Overview</p>
                 </div>
 
-                <div class="actions-row">
-                    <button id="upload-btn" class="primary-btn">
-                        Validate & Import
+                <!-- Right Side: Controls -->
+                <div class="header-controls">
+                    <!-- Hidden Trigger for JS compatibility if needed, or mapped -->
+                    <button id="settings-btn" class="btn btn-secondary" title="Settings"
+                        style="display:none;">Settings</button>
+
+                    <button id="view-cert-btn" class="btn btn-secondary">
+                        View Default Certificate
+                    </button>
+                    <div id="cert-status" class="status-tag pending">
+                        Checking...
+                    </div>
+                </div>
+            </header>
+
+            <!-- Hero Stats / Upload Section -->
+            <section class="upload-section cyber-panel"
+                style="text-align: left; padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-glass); padding-bottom: 1rem;">
+                    <div>
+                        <h2 style="margin: 0; font-size: 1.25rem; color: var(--accent-primary);">
+                            Default Certificate</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem;">
+                            ROOT_AUTHORITY // WILDCARD_BUNDLE</p>
+                    </div>
+                    <button id="upload-btn" class="btn btn-primary">
+                        INITIALIZE_UPLOAD
                     </button>
                 </div>
-                <div id="upload-status"></div>
-            </section>
 
-            <section class="services-section">
-                <div class="section-header">
-                    <h2>Services</h2>
-                    <div class="actions">
-                        <button class="secondary-btn" title="Run daily health check now"
-                            onclick="triggerHealthCheck()">🏥 Check Health</button>
-                        <button class="secondary-btn" onclick="openCertManager()">Manage Packs</button>
-                        <button id="manage-services-btn" class="secondary-btn">Manage Services</button>
+                <div class="upload-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+
+                    <div class="upload-card data-plate">
+                        <label
+                            style="font-size: 0.75rem; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; display: block; font-weight: 700;">Certificate
+                            [.crt]</label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="file-cert" accept=".pem,.crt" class="cyber-file-input"
+                                onchange="updateFileName(this, 'display-cert')">
+                            <label for="file-cert" class="cyber-file-label">SELECT FILE</label>
+                            <span id="display-cert" class="file-name-display">NO_FILE_CHOSEN</span>
+                        </div>
                     </div>
-                    <button id="renew-all-btn" class="primary-btn">
-                        <span class="icon">⚡</span> Renew All
-                    </button>
+
+                    <div class="upload-card data-plate">
+                        <label
+                            style="font-size: 0.75rem; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; display: block; font-weight: 700;">Private
+                            Key [.key]</label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="file-key" accept=".pem,.key" class="cyber-file-input"
+                                onchange="updateFileName(this, 'display-key')">
+                            <label for="file-key" class="cyber-file-label">SELECT FILE</label>
+                            <span id="display-key" class="file-name-display">NO_FILE_CHOSEN</span>
+                        </div>
+                    </div>
+
+                    <div class="upload-card data-plate">
+                        <label
+                            style="font-size: 0.75rem; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; display: block; font-weight: 700;">Intermediate</label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="file-inter" accept=".pem,.crt" class="cyber-file-input"
+                                onchange="updateFileName(this, 'display-inter')">
+                            <label for="file-inter" class="cyber-file-label">SELECT FILE</label>
+                            <span id="display-inter" class="file-name-display">NO_FILE_CHOSEN</span>
+                        </div>
+                    </div>
+
+                    <div class="upload-card data-plate">
+                        <label
+                            style="font-size: 0.75rem; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; display: block; font-weight: 700;">Root
+                            CA</label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="file-root" accept=".pem,.crt" class="cyber-file-input"
+                                onchange="updateFileName(this, 'display-root')">
+                            <label for="file-root" class="cyber-file-label">SELECT FILE</label>
+                            <span id="display-root" class="file-name-display">NO_FILE_CHOSEN</span>
+                        </div>
+                    </div>
                 </div>
-                <div id="services-grid" style="margin-top: 1rem;">
-                    <div class="loading-spinner">Loading...</div>
-                </div>
+                <div id="upload-status" style="font-family: var(--font-primary); font-size: 0.8rem;"></div>
             </section>
 
-            <section class="logs-section">
+            <!-- Services Section -->
+            <section id="services-section" style="margin-top: 3rem;">
                 <div class="section-header">
-                    <h2>Logs</h2>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="auto-refresh-toggle" checked>
-                            <span class="slider"></span>
-                        </label>
-                        <span
-                            style="font-size: 0.8rem; color: var(--text-secondary); margin-right: 0.5rem;">Auto-Refresh</span>
-
-                        <button id="pause-logs-btn" class="secondary-btn"
-                            style="font-size: 0.8rem; padding: 0.2rem 0.6rem;">
-                            Pause Scroll
+                    <div>
+                        <h2>Services</h2>
+                    </div>
+                    <div class="actions" style="display: flex; gap: 0.75rem;">
+                        <button class="btn btn-secondary" onclick="triggerHealthCheck()">Check Health</button>
+                        <button class="btn btn-secondary" onclick="openCertManager()">Manage Packs</button>
+                        <button id="manage-services-btn" class="btn btn-secondary">Manage Services</button>
+                        <button id="renew-all-btn" class="btn btn-primary">
+                            Renew All
                         </button>
+                    </div>
+                </div>
+                <div id="services-grid" class="services-grid">
+                    <div class="loading-spinner" style="color: var(--text-secondary);">Loading Vault Data...</div>
+                </div>
+            </section>
+
+            <!-- Logs Section -->
+            <section id="logs-section" class="logs-container" style="margin-top: 3rem;">
+                <div class="section-header">
+                    <h2 style="margin: 0; font-size: 1.1rem;">System Logs</h2>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <label class="toggle-switch"
+                            style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <span
+                                style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">LIVE
+                                REFRESH</span>
+                            <input type="checkbox" id="auto-refresh-toggle" checked style="width: auto;"
+                                onchange="if(this.checked) fetchLogs()">
+                        </label>
+                        <button id="autoscroll-btn" class="btn btn-secondary"
+                            style="padding: 0.35rem 0.75rem; font-size: 0.75rem;">SCROLL: ON</button>
                     </div>
                 </div>
                 <div class="log-console" id="log-console"></div>
             </section>
         </main>
-
-        <footer
-            style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--card-border); text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
-            <p>&copy; 2026 Lokesh G. All rights reserved. | <span style="opacity: 0.8;">{{ app_version }}</span></p>
-            <p style="font-size: 0.8rem; opacity: 0.7;">A hobby project to solve the pain of renewing certificates.</p>
-        </footer>
     </div>
 
-    <!-- Service Editor Modal -->
-    <div id="service-modal" class="modal hidden">
-        <div class="modal-content">
+    <!-- Service Editor Modal (Drawer) -->
+    <div id="service-modal" class="modal-overlay hidden">
+        <div class="modal-drawer">
             <div class="modal-header">
                 <h3 id="service-modal-title">Manage Services</h3>
                 <span class="close-modal">&times;</span>
@@ -156,14 +229,14 @@
                 <!-- Content injected by JS -->
             </div>
             <div class="modal-footer" id="service-modal-footer">
-                <button class="secondary-btn close-modal-btn">Close</button>
+                <button class="btn btn-secondary close-modal-btn">Close</button>
             </div>
         </div>
     </div>
 
     <!-- Generic Details/Manager Modal -->
-    <div id="details-modal" class="modal hidden">
-        <div class="modal-content">
+    <div id="details-modal" class="modal-overlay hidden">
+        <div class="modal-drawer">
             <div class="modal-header">
                 <h3 id="details-modal-title">Details</h3>
                 <span id="close-details-modal" class="close-modal">&times;</span>
@@ -172,12 +245,13 @@
                 <!-- Content injected by JS -->
             </div>
             <div class="modal-footer">
-                <button id="close-details-btn" class="secondary-btn">Close</button>
+                <button id="close-details-btn" class="btn btn-secondary">Close</button>
             </div>
         </div>
     </div>
-    <div id="cert-modal" class="modal hidden">
-        <div class="modal-content">
+
+    <div id="cert-modal" class="modal-overlay hidden">
+        <div class="modal-drawer">
             <div class="modal-header">
                 <h3>Certificate Details</h3>
                 <span class="close-modal">&times;</span>
@@ -185,7 +259,8 @@
             <div class="modal-body" id="cert-details-body">
                 <!-- Details injected here -->
             </div>
-            <div class="log-console" id="modal-log-console">
+            <div class="log-console" id="modal-log-console"
+                style="margin: 1.5rem; height: 200px; border-radius: 0.5rem;">
                 <!-- Logs will appear here -->
                 <span style="color: var(--text-secondary);">Loading logs...</span>
             </div>
@@ -193,8 +268,8 @@
     </div>
 
     <!-- Settings Modal -->
-    <div id="settings-modal" class="modal hidden">
-        <div class="modal-content" style="max-width: 400px;">
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-drawer" style="max-width: 400px;">
             <div class="modal-header">
                 <h3>Settings</h3>
                 <span class="close-modal-settings">&times;</span>
@@ -216,16 +291,16 @@
                         <input type="password" id="confirm-pass" placeholder="Confirm New Password"
                             style="width: 100%; padding: 0.5rem; background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); color: white; border-radius: 4px;">
                     </div>
-                    <button id="change-pass-btn" class="primary-btn" style="width: 100%;">Update Password</button>
+                    <button id="change-pass-btn" class="btn btn-primary" style="width: 100%;">Update Password</button>
                 </div>
                 <div
                     style="text-align: center; margin-top: 2rem; border-top: 1px solid var(--card-border); padding-top: 1rem;">
-                    <button id="logout-btn" class="secondary-btn"
+                    <button id="logout-btn" class="btn btn-secondary"
                         style="color: var(--error-color); border-color: var(--error-color);">Log Out</button>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="secondary-btn close-modal-settings-btn">Close</button>
+                <button class="btn btn-secondary close-modal-settings-btn">Close</button>
             </div>
         </div>
     </div>
@@ -242,6 +317,23 @@
             </div>
             <div class="modal-footer" id="action-modal-footer">
                 <button class="secondary-btn close-modal-action-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal (High Z-Index) -->
+    <div id="confirm-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 400px; border-color: var(--status-error);">
+            <div class="modal-header">
+                <h3 id="confirm-modal-title" style="color: var(--status-error);">Confirm Action</h3>
+            </div>
+            <div class="modal-body" id="confirm-modal-body"
+                style="padding: 1.5rem; text-align: center; font-size: 1rem;">
+                <!-- Content -->
+            </div>
+            <div class="modal-footer" id="confirm-modal-footer"
+                style="justify-content: center; gap: 1rem; padding-bottom: 1.5rem;">
+                <!-- Buttons -->
             </div>
         </div>
     </div>
@@ -320,38 +412,38 @@
         // Async Confirm Modal
         function showConfirm(title, message, confirmText = "Confirm", cancelText = "Cancel") {
             return new Promise((resolve) => {
-                actionTitle.innerText = title;
-                actionBody.innerText = message;
-                actionBody.style.marginTop = "1rem";
-                actionBody.style.marginBottom = "1rem";
+                const modal = document.getElementById('confirm-modal');
+                const mTitle = document.getElementById('confirm-modal-title');
+                const mBody = document.getElementById('confirm-modal-body');
+                const mFooter = document.getElementById('confirm-modal-footer');
 
-                // Construct Footer with Buttons
-                actionFooter.innerHTML = '';
+                mTitle.innerText = title;
+                mBody.innerText = message;
+                mFooter.innerHTML = '';
 
                 const cancelBtn = document.createElement('button');
-                cancelBtn.className = 'secondary-btn';
+                cancelBtn.className = 'btn btn-secondary';
                 cancelBtn.innerText = cancelText;
                 cancelBtn.onclick = () => {
-                    hideActionModal();
+                    modal.classList.add('hidden');
                     resolve(false);
                 };
 
                 const confirmBtn = document.createElement('button');
+                confirmBtn.className = 'btn btn-primary';
                 confirmBtn.innerText = confirmText;
-                confirmBtn.className = 'primary-btn';
-                confirmBtn.style.background = 'var(--error-color)';
-                confirmBtn.style.color = 'white';
-                confirmBtn.style.marginLeft = '1rem';
+                confirmBtn.style.background = 'var(--status-error)';
+                confirmBtn.style.color = 'black';
 
                 confirmBtn.onclick = () => {
-                    hideActionModal();
+                    modal.classList.add('hidden');
                     resolve(true);
                 };
 
-                actionFooter.appendChild(cancelBtn);
-                actionFooter.appendChild(confirmBtn);
+                mFooter.appendChild(cancelBtn);
+                mFooter.appendChild(confirmBtn);
 
-                actionModal.classList.remove('hidden');
+                modal.classList.remove('hidden');
             });
         }
 
@@ -364,7 +456,7 @@
         const renewAllBtn = document.getElementById('renew-all-btn');
         const uploadBtn = document.getElementById('upload-btn');
         const uploadStatus = document.getElementById('upload-status');
-        const pauseLogsBtn = document.getElementById('pause-logs-btn');
+        const autoScrollBtn = document.getElementById('autoscroll-btn');
 
         // Modal Elements
         const modal = document.getElementById('cert-modal');
@@ -380,13 +472,13 @@
             await fetchLogs();
             setInterval(fetchLogs, 3000);
 
-            // Log Pause (Scroll Lock)
-            if (pauseLogsBtn) {
-                pauseLogsBtn.onclick = () => {
+            // Auto-Scroll Toggle Logic
+            if (autoScrollBtn) {
+                autoScrollBtn.onclick = () => {
                     autoScroll = !autoScroll;
-                    pauseLogsBtn.innerText = autoScroll ? "Pause Scroll" : "Resume Scroll";
-                    pauseLogsBtn.style.background = !autoScroll ? "var(--accent-color)" : "transparent";
-                    pauseLogsBtn.style.color = !autoScroll ? "#000" : "var(--accent-color)";
+                    autoScrollBtn.innerText = autoScroll ? "SCROLL: ON" : "SCROLL: OFF";
+                    autoScrollBtn.style.borderColor = autoScroll ? "var(--border-glass)" : "var(--status-warning)";
+                    autoScrollBtn.style.color = autoScroll ? "var(--accent-primary)" : "var(--status-warning)";
                 };
             }
         }
@@ -396,29 +488,49 @@
                 const res = await secureFetch(`${API_BASE}/status`);
                 if (res.status === 401) {
                     certStatus.textContent = "System Locked";
-                    certStatus.className = "status-badge pending"; // Yellow/Orange
+                    certStatus.className = "status-tag pending";
                     return;
                 }
                 const data = await res.json();
                 if (data.locked) {
                     certStatus.textContent = "System Locked";
-                    certStatus.className = "status-badge pending";
+                    certStatus.className = "status-tag pending";
                     return;
                 }
-                updateCertStatus(data.certs_ready);
+                updateCertStatus(data);
                 renderServices(data.services);
             } catch (e) {
                 console.error(e);
             }
         }
 
-        function updateCertStatus(ready) {
-            if (ready) {
-                certStatus.textContent = "Certificates Ready";
-                certStatus.className = "status-badge success";
+        function updateCertStatus(data) {
+            if (data.cert_details) {
+                const cd = data.cert_details;
+                if (!cd.default_exists) {
+                    certStatus.textContent = "Certificate Not Ready";
+                    certStatus.className = "status-tag error";
+                } else if (cd.expired_packs > 0) {
+                    if (cd.expired_packs === cd.total_packs) {
+                        certStatus.textContent = "All Packs Expired";
+                        certStatus.className = "status-tag error";
+                    } else {
+                        certStatus.textContent = `${cd.expired_packs} Packs Expired`;
+                        certStatus.className = "status-tag warning";
+                    }
+                } else {
+                    certStatus.textContent = "Certificates Ready";
+                    certStatus.className = "status-tag success";
+                }
             } else {
-                certStatus.textContent = "Certificates Missing";
-                certStatus.className = "status-badge error";
+                // Fallback for transition
+                if (data.certs_ready) {
+                    certStatus.textContent = "Certificates Ready";
+                    certStatus.className = "status-tag success";
+                } else {
+                    certStatus.textContent = "Certificates Missing";
+                    certStatus.className = "status-tag error";
+                }
             }
         }
 
@@ -433,16 +545,24 @@
             }
 
             let tableHtml = `
-            <div class="services-table-wrapper">
-                <table class="services-table">
+            <div class="services-table-wrapper" style="overflow-x:auto;">
+                <table class="services-table" style="width:100%; border-collapse: separate; border-spacing: 0 0.5rem;">
+                    <colgroup>
+                        <col style="width: 20%;">
+                        <col style="width: 20%;">
+                        <col style="width: 10%;">
+                        <col style="width: 20%;">
+                        <col style="width: 15%;">
+                        <col style="width: 180px;"> <!-- Fixed Actions Width -->
+                    </colgroup>
                     <thead>
-                        <tr>
-                            <th>Service Name</th>
-                            <th>Host / IP</th>
-                            <th>Type</th>
-                            <th>Health</th>
-                            <th>Last Renewal</th>
-                            <th style="text-align:right;">Actions</th>
+                        <tr style="color: var(--text-secondary); font-family: var(--font-primary); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; text-align: left;">
+                            <th style="padding: 1rem;">Service Name</th>
+                            <th style="padding: 1rem;">Host / IP</th>
+                            <th style="padding: 1rem;">Type</th>
+                            <th style="padding: 1rem;">Health</th>
+                            <th style="padding: 1rem;">Renewal</th>
+                            <th style="padding: 1rem; text-align:right;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -450,88 +570,97 @@
 
             servicesList.forEach(svc => {
                 // Last Renewal Logic
-                let renewalHtml = '<span style="color:var(--text-secondary); font-size: 0.8rem; opacity: 0.7;">Never</span>';
+                let renewalHtml = '<span style="color:var(--text-secondary); font-size: 0.75rem; opacity: 0.7; font-family: var(--font-primary);">&lt;NULL&gt;</span>';
                 if (svc.last_renewal && svc.last_renewal.last_run) {
                     const s = svc.last_renewal;
-                    const color = s.status === 'Success' ? 'var(--success-color)' : 'var(--error-color)';
-                    const icon = s.status === 'Success' ? '✅' : '❌';
+                    const statusClass = s.status === 'Success' ? 'success' : 'error';
+                    const icon = s.status === 'Success' ? 'OK' : 'ERR';
                     const time = timeAgo(s.last_run);
                     const msg = s.message || s.status;
-                    renewalHtml = `<span title="${msg}" style="color:${color}; cursor:help; font-size: 0.9rem;">
-                        ${icon} <span class="live-timer" data-ts="${s.last_run}">${time}</span>
+                    renewalHtml = `<span class="status-tag ${statusClass}" title="${msg}" style="cursor:help;">
+                        <span style="opacity:0.7">${icon}</span> ${time}
                     </span>`;
                 }
 
-                // Health Status Logic
-                let healthHtml = `<span id="status-${svc.name}" class="status-badge pending">Pending</span>`;
-                // Health Status Logic (Split into Local and Remote)
-                let localHealthHtml = `<span class="status-badge pending">Unknown</span>`;
-                let remoteHealthHtml = `<span id="status-${svc.name}" class="status-badge pending">Unknown</span>`;
+                // ... (Health Logic same but wrapped) ...
+                let healthHtml = `<span id="status-${svc.name}" class="status-tag pending">PENDING</span>`;
 
-                // 1. Local Health (System Pack)
+                // Simplified Health for table compactness:
+                // We'll just show markers for Local/Remote
+                let localStatus = svc.health_status && svc.health_status.valid ? 'success' : 'error';
+                let remoteStatus = svc.ssl_status && svc.ssl_status.valid ? 'success' : 'error';
+
+                // Detailed breakdown
+                healthHtml = `
+                    <div style="display: flex; gap: 0.5rem;">
+                        <span class="status-tag ${localStatus}" title="Local Pack">L</span>
+                        <span class="status-tag ${remoteStatus}" title="Remote SSL">R</span>
+                    </div>
+                `;
+                // If we want the full detail we can keep it, but compact is better for "Cyber" tables.
+                // Let's stick to the previous detailed view but styled better.
+
+                let localHealthHtml = `<span class="status-tag pending">?</span>`;
                 if (svc.health_status) {
                     const h = svc.health_status;
-                    let badgeClass = 'pending';
-                    if (!h.valid) badgeClass = 'error';
-                    else if (h.days_remaining <= 7) badgeClass = 'error';
-                    else if (h.days_remaining <= 30) badgeClass = 'warning';
-                    else badgeClass = 'success';
-                    localHealthHtml = `<span class="status-badge ${badgeClass}" title="Local Certificate Pack: ${h.message}">${h.status}</span>`;
+                    let c = !h.valid ? 'error' : (h.days_remaining <= 30 ? 'pending' : 'success');
+                    localHealthHtml = `<span class="status-tag ${c}" title="Local: ${h.message}">LOC:${h.status}</span>`;
                 }
 
-                // 2. Remote Health (Deployed SSL)
+                let remoteHealthHtml = `<span class="status-tag pending">?</span>`;
                 if (svc.ssl_status) {
                     const s = svc.ssl_status;
-                    let badgeClass = 'pending';
-                    if (!s.valid) badgeClass = 'error';
-                    else if (s.days_remaining <= 7) badgeClass = 'error';
-                    else if (s.days_remaining <= 30) badgeClass = 'warning';
-                    else badgeClass = 'success';
-
-                    remoteHealthHtml = `<span id="status-${svc.name}" class="status-badge ${badgeClass}" title="Deployed SSL: Expires in ${s.days_remaining} days">${s.days_remaining}d</span>`;
+                    let c = !s.valid ? 'error' : (s.days_remaining <= 30 ? 'pending' : 'success');
+                    remoteHealthHtml = `<span class="status-tag ${c}" title="Remote: ${s.days_remaining}d">REM:${s.days_remaining}d</span>`;
                 }
 
                 healthHtml = `
-                    <div style="display: flex; flex-direction: column; gap: 0.4rem;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem;">
-                            <span style="opacity: 0.7;">Local Pack:</span>
-                            ${localHealthHtml}
-                        </div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.75rem;">
-                            <span style="opacity: 0.7;">Deployed:</span>
-                            ${remoteHealthHtml}
-                        </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.7rem;">
+                        ${localHealthHtml}
+                        ${remoteHealthHtml}
                     </div>
                 `;
 
+
                 tableHtml += `
-                    <tr data-service="${svc.name}">
-                        <td>
-                            <div class="svc-name">${svc.name}</div>
+                    <tr data-service="${svc.name}" class="cyber-row" style="background: rgba(255,255,255,0.02); transition: background 0.2s;">
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border-glass);">
+                            <div style="font-family: var(--font-primary); font-weight: 700; color: var(--text-primary); letter-spacing: 0.05em;">${svc.name}</div>
                         </td>
-                        <td>
-                            <div class="svc-meta">${svc.host || '<span style="opacity:0.5">-</span>'}</div>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border-glass);">
+                            <div style="font-family: var(--font-primary); color: var(--accent-primary); font-size: 0.85rem;">${svc.host || '<span style="opacity:0.3">--</span>'}</div>
                         </td>
-                        <td>
-                            <span style="font-size:0.8rem; background:rgba(255,255,255,0.1); padding:0.1rem 0.4rem; border-radius:4px;">${svc.type || 'Unknown'}</span>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border-glass);">
+                            <span style="font-family: var(--font-primary); font-size:0.75rem; border: 1px solid var(--border-glass); padding: 2px 6px; text-transform: uppercase;">${svc.type || 'UNK'}</span>
                         </td>
-                        <td>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border-glass);">
                             ${healthHtml}
                         </td>
-                        <td>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border-glass);">
                             ${renewalHtml}
                         </td>
-                        <td style="text-align:right;">
-
-                            <button class="icon-btn primary" title="Renew Certificate" onclick="renewService('${svc.name}')">
-                                ↺ Renew
-                            </button>
-                            <button id="check-btn-${svc.name}" class="icon-btn" title="Check Expiry" onclick="checkService('${svc.name}')">
-                                🔍
-                            </button>
-                            <button class="icon-btn" title="Edit Service" onclick="openServiceEditorModal('${svc.name}')">
-                                ✎ Edit
-                            </button>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border-glass); text-align:right;">
+                            <div style="display:flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                                <button class="cyber-icon-btn renew" title="Renew" onclick="renewService('${svc.name}')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.39 0 4.57.94 6.19 2.47L21 6"/>
+                                        <path d="M21 1v5h-5"/>
+                                        <path d="M12 7v5l2 2"/>
+                                    </svg>
+                                </button>
+                                <button class="cyber-icon-btn check" id="check-btn-${svc.name}" title="Check" onclick="checkService('${svc.name}')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/>
+                                        <circle cx="12" cy="12" r="3" stroke-dasharray="2 3"/>
+                                        <path d="M12 9v6M9 12h6" stroke-opacity="0.4"/>
+                                    </svg>
+                                </button>
+                                <button class="cyber-icon-btn edit" title="Edit" onclick="openServiceEditorModal('${svc.name}')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M1 14h6m2-6h6m2 8h6"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -669,12 +798,45 @@
                 const res = await secureFetch(`${API_BASE}/logs`);
                 const data = await res.json();
 
-                // Only update if we have data (and maybe check diff? basic replace is fine)
-                // To avoid flickering if selection is active, we might want to be careful, but innerHTML replace is fast enough usually.
-                logConsole.innerHTML = data.logs.join('<br>');
+                const newLines = data.logs;
+                const newContent = newLines.map(line => `<div class="log-line">${line}</div>`).join('');
+                if (logConsole.innerHTML === newContent) return;
 
-                if (autoScroll) {
+                // --- STICKY SCROLL ANCHOR LOGIC ---
+                // If autoscroll is OFF, we find the first visible line and use it as an anchor
+                let anchorText = null;
+                let anchorTopOffset = 0;
+                const wasAtBottom = Math.abs(logConsole.scrollHeight - logConsole.clientHeight - logConsole.scrollTop) < 30;
+
+                if (!autoScroll && !wasAtBottom) {
+                    const lines = logConsole.querySelectorAll('.log-line');
+                    for (let line of lines) {
+                        const rec = line.getBoundingClientRect();
+                        const containerRec = logConsole.getBoundingClientRect();
+                        if (rec.top >= containerRec.top) {
+                            anchorText = line.textContent;
+                            anchorTopOffset = rec.top - containerRec.top;
+                            break;
+                        }
+                    }
+                }
+
+                logConsole.innerHTML = newContent;
+
+                if (autoScroll || wasAtBottom) {
                     logConsole.scrollTop = logConsole.scrollHeight;
+                } else if (anchorText) {
+                    // Find the anchor in the new content
+                    const newLinesElements = logConsole.querySelectorAll('.log-line');
+                    for (let line of newLinesElements) {
+                        if (line.textContent === anchorText) {
+                            const containerRec = logConsole.getBoundingClientRect();
+                            const newLineTop = line.offsetTop - logConsole.offsetTop;
+                            // Set scrollTop so the line is back at the same relative position
+                            logConsole.scrollTop = newLineTop - anchorTopOffset;
+                            break;
+                        }
+                    }
                 }
             } catch (e) { }
         }
@@ -724,29 +886,35 @@
             const modalFooter = document.getElementById('action-modal-footer');
 
             modalTitle.innerText = "Manage Service Types";
-            modalFooter.innerHTML = '<button class="secondary-btn" onclick="hideActionModal()">Close</button>';
+            modalFooter.innerHTML = '<button class="btn btn-secondary" onclick="hideActionModal()">Close</button>';
 
             let html = `
-                <div style="margin-bottom: 1rem; padding: 1rem; border: 1px dashed var(--card-border); border-radius: 0.5rem;">
-                    <h4 style="margin-top:0;">Add New Type / Context</h4>
-                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-                        <input type="text" id="new-type-name" placeholder="Name (e.g. 'Nginx', 'My Router')" style="flex:1; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
-                        <select id="new-type-base" style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
+                <div class="cyber-panel" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+                    <h4 style="margin-top:0; margin-bottom: 1rem; color: var(--text-primary);">Add New Type / Context</h4>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <input type="text" id="new-type-name" placeholder="Name (e.g. 'Nginx', 'My Router')" style="flex:1;">
+                        <select id="new-type-base" style="width: auto;">
                              ${availableBaseHandlers.map(h => `<option value="${h}">${h}</option>`).join('')}
                         </select>
-                        <button id="add-type-btn" class="secondary-btn" style="border-color: var(--success-color); color: var(--success-color);">Add</button>
+                        <button id="add-type-btn" class="btn btn-secondary" style="border-color: var(--status-success); color: var(--status-success);">Add</button>
                     </div>
                 </div>
-                <div style="max-height: 300px; overflow-y: auto;">
+                <div style="max-height: 400px; overflow-y: auto;">
                     <table style="width: 100%; border-collapse: collapse;">
-                        <thead><tr style="text-align:left; color:var(--text-secondary); border-bottom: 1px solid var(--card-border);"><th style="padding:0.5rem;">Name</th><th style="padding:0.5rem;">Handler</th><th style="padding:0.5rem;"></th></tr></thead>
+                        <thead>
+                            <tr style="text-align:left; color:var(--text-secondary); border-bottom: 1px solid var(--border-glass);">
+                                <th style="padding:0.75rem;">Name</th>
+                                <th style="padding:0.75rem;">Base Handler</th>
+                                <th style="padding:0.75rem;"></th>
+                            </tr>
+                        </thead>
                         <tbody>
                             ${Object.entries(serviceTypesMap).map(([name, base]) => `
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                    <td style="padding:0.5rem;">${name}</td>
-                                    <td style="padding:0.5rem;"><code>${base}</code></td>
-                                    <td style="padding:0.5rem; text-align:right;">
-                                        <button class="secondary-btn" style="padding:0.2rem 0.5rem; font-size: 0.8rem; color: var(--error-color); border-color: var(--error-color);" onclick="deleteType('${name}')">Delete</button>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                                    <td style="padding:0.75rem; color: var(--text-primary); font-weight: 500;">${name}</td>
+                                    <td style="padding:0.75rem;"><span class="service-badge">${base}</span></td>
+                                    <td style="padding:0.75rem; text-align:right;">
+                                        <button class="btn btn-secondary" style="padding:0.3rem 0.6rem; font-size: 0.8rem; color: var(--status-error); border-color: var(--status-error);" onclick="deleteType('${name}')">Delete</button>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -784,7 +952,7 @@
 
             // Bind Delete Globals
             window.deleteType = async (name) => {
-                if (!confirm(`Delete type '${name}'?`)) return;
+                if (!await showConfirm("Delete Service Type", `Are you sure you want to delete '${name}'?`, "Delete")) return;
                 try {
                     const req = await secureFetch(`${API_BASE}/types`, {
                         method: 'DELETE',
@@ -838,38 +1006,50 @@
         }
 
         function renderServiceList(services) {
-            let html = '<div style="margin-bottom: 1rem;"><button id="add-service-btn" class="secondary-btn" style="width:100%">+ Add New Service</button></div>';
-            html += '<div style="max-height: 400px; overflow-y: auto;">';
+            let html = '<div style="margin-bottom: 1.5rem;"><button id="add-service-btn" class="btn btn-secondary" style="width:100%">+ Add New Service</button></div>';
+
+            // Grid container (already defined in HTML as services-grid, but we are injecting innerHTML)
+            // Wait, services-grid is the container. This function returns children.
+            // But previous code started with <div style="max-height..."> which suggests it was a list VIEW inside the modal?
+            // checking callers:
+            // manageServicesBtn.onclick -> modalBody.innerHTML = renderServiceList(currentServices);
+            // So this IS only for the Modal Manager List, not the main Dashboard Grid.
+            // The main dashboard grid is likely rendered by something else ("fetchStatus" I recall).
+
+            // Let's style this list for the Drawer.
+            html += '<div style="display: flex; flex-direction: column; gap: 0.75rem;">';
 
             if (!services || services.length === 0) {
                 html += '<div style="padding:1rem; text-align:center; color:var(--text-secondary);">No services configured.</div>';
             } else {
                 services.forEach(svc => {
-                    let statusHtml = '<span style="color:var(--text-secondary); font-size: 0.8rem;">Never</span>';
+                    let statusHtml = '<span class="status-tag" style="opacity:0.7;">Never</span>';
 
                     if (svc.last_renewal && svc.last_renewal.last_run) {
                         const s = svc.last_renewal;
-                        const color = s.status === 'Success' ? 'var(--success-color)' : 'var(--error-color)';
+                        const statusClass = s.status === 'Success' ? 'success' : 'error';
                         const icon = s.status === 'Success' ? '✅' : '❌';
                         const time = timeAgo(s.last_run);
-                        statusHtml = `<span title="${s.message || s.status}" style="color:${color}; cursor:help; font-size: 0.85rem;">
+                        statusHtml = `<span class="status-tag ${statusClass}" title="${s.message || s.status}">
                             ${icon} ${time}
                         </span>`;
                     }
 
                     html += `
-                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                        <div class="cyber-panel" style="padding: 1rem; display: flex; justify-content: space-between; align-items: center; border-radius: 0.5rem;">
                             <div style="flex: 1;">
-                                <div style="font-weight: 600; color: var(--text-primary);">${svc.name}</div>
-                                <div style="font-size: 0.8rem; color: var(--text-secondary);">${svc.type || '<span style="color:var(--error-color)">(No Type)</span>'} @ ${svc.host || 'N/A'}</div>
+                                <div style="font-weight: 600; color: var(--text-primary); font-size: 1rem;">${svc.name}</div>
+                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                                    <span class="service-badge" style="font-size: 0.7rem;">${svc.type || 'UNKNOWN'}</span> 
+                                    <span style="opacity: 0.7;">@ ${svc.host || 'N/A'}</span>
+                                </div>
                             </div>
                             
-                             <div style="flex: 0 0 160px; text-align: right; margin-right: 1rem; display: flex; flex-direction: column; align-items: flex-end;">
-                                <div style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.2rem;">Last Renewal</div>
+                             <div style="text-align: right; margin-right: 1rem;">
                                 ${statusHtml}
                             </div>
 
-                            <button class="secondary-btn edit-svc-btn" data-name="${svc.name}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Edit</button>
+                            <button class="btn btn-secondary edit-svc-btn" data-name="${svc.name}" style="padding: 0.4rem 0.8rem;">Edit</button>
                         </div>
                     `;
                 });
@@ -888,50 +1068,48 @@
             // Default type: 'proxmox' if exists, else first available
             const type = service ? service.type || 'proxmox' : 'proxmox';
 
-            // Dynamic fields based on type could go here, but for now we'll do JSON blob for simplicity or just common ones + extra keys text area?
-            // User asked for "modify name and IP". Let's stick to Name, Host, Type, and a generic "Extra Config (JSON)" field for now to keep it flexible without 100 inputs.
-            // Actually, let's just do Name, Host, Type, User/API Key as generic text inputs.
-
             let html = `
                 <form id="svc-form" onsubmit="event.preventDefault();">
-                <div class="upload-card" style="margin-bottom: 1rem;">
+                <div class="data-plate" style="margin-bottom: 1rem;">
                     <label>Service Name *</label>
-                    <input type="text" id="svc-name" value="${name}" placeholder="e.g., my-proxmox" style="background: transparent; border: 1px solid var(--card-border); padding: 0.5rem; color: var(--text-primary); border-radius: 0.25rem; width: 100%;">
+                    <input type="text" id="svc-name" value="${name}" placeholder="e.g., my-proxmox">
                 </div>
-                <div class="upload-card" style="margin-bottom: 1rem;">
+                <div class="data-plate" style="margin-bottom: 1rem;">
                     <label>Host / IP *</label>
-                    <input type="text" id="svc-host" value="${host}" placeholder="192.168.1.10" style="background: transparent; border: 1px solid var(--card-border); padding: 0.5rem; color: var(--text-primary); border-radius: 0.25rem; width: 100%;">
+                    <input type="text" id="svc-host" value="${host}" placeholder="192.168.1.10">
                 </div>
-                <div class="upload-card" style="margin-bottom: 1rem;">
-                    <label>Type *</label>
-                    <div style="display:flex; gap:0.5rem;">
-                         <select id="svc-type" style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 0.5rem; color: var(--text-primary); border-radius: 0.25rem; width: 100%;">
+                <div class="data-plate" style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-secondary); text-transform: uppercase;">Type *</label>
+                    <div style="display:flex; gap:0.5rem; align-items: stretch;">
+                         <select id="svc-type" style="flex:1;">
                             <!-- Populated Dynamically -->
                          </select>
-                         <button id="manage-types-btn" class="secondary-btn" style="padding: 0.5rem;" title="Manage Service Types">⚙️</button>
+                         <button id="manage-types-btn" class="cyber-icon-btn settings" style="height: auto; min-width: 38px;" title="Manage Service Types" onclick="renderTypesManager()">
+                            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"></path></svg>
+                         </button>
                     </div>
                 </div>
 
-                <div class="upload-card" style="margin-bottom: 1rem;">
+                <div class="data-plate" style="margin-bottom: 1rem;">
                     <label>Certificate Source</label>
-                    <select id="config-cert-pack" style="background: var(--card-bg); border: 1px solid var(--card-border); padding: 0.5rem; color: var(--text-primary); border-radius: 0.25rem; width: 100%;">
+                    <select id="config-cert-pack">
                         <option value="default">Default (Root)</option>
                         <!-- Populated Dynamically -->
                     </select>
                 </div>
 
                 <!-- Webhook Section -->
-                <div id="section-webhook" style="display:none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">
-                    <h4 style="margin-bottom: 0.5rem; color: var(--accent-color);">Webhook Configuration</h4>
+                <div id="section-webhook" class="cyber-panel" style="display:none; margin-top: 1rem; padding: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem; color: var(--accent-primary);">Webhook Configuration</h4>
                     
                     <div style="margin-bottom: 1rem;">
                         <label style="display:block; margin-bottom: 0.25rem;">Target URL</label>
-                        <input type="text" id="webhook-url" class="form-input" placeholder="https://api.example.com/v1/certs" value="${service ? (service.url || '') : ''}" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.5rem; color: var(--text-primary); border-radius: 0.25rem;">
+                        <input type="text" id="webhook-url" class="form-input" placeholder="https://api.example.com/v1/certs" value="${service ? (service.url || '') : ''}">
                     </div>
                     
                     <div style="margin-bottom: 1rem;">
                         <label style="display:block; margin-bottom: 0.25rem;">Method</label>
-                        <select id="webhook-method" class="form-input" style="width: 100%; background: var(--card-bg); border: 1px solid var(--card-border); padding: 0.5rem; color: var(--text-primary); border-radius: 0.25rem;">
+                        <select id="webhook-method" class="form-input">
                             <option value="POST" ${service && service.method === 'POST' ? 'selected' : ''}>POST</option>
                             <option value="PUT" ${service && service.method === 'PUT' ? 'selected' : ''}>PUT</option>
                             <option value="PATCH" ${service && service.method === 'PATCH' ? 'selected' : ''}>PATCH</option>
@@ -940,12 +1118,12 @@
 
                     <div style="margin-bottom: 1rem;">
                         <label style="display:block; margin-bottom: 0.25rem;">Headers (JSON)</label>
-                        <textarea id="webhook-headers" rows="3" class="form-input" style="font-family: monospace; width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.5rem; color: var(--text-primary); border-radius: 0.25rem;" placeholder='{"Authorization": "Bearer token"}' spellcheck="false">${service ? (typeof service.headers === 'object' ? JSON.stringify(service.headers, null, 2) : (service.headers || '{}')) : '{}'}</textarea>
+                        <textarea id="webhook-headers" rows="3" class="form-input" style="font-family: var(--font-mono);" placeholder='{"Authorization": "Bearer token"}' spellcheck="false">${service ? (typeof service.headers === 'object' ? JSON.stringify(service.headers, null, 2) : (service.headers || '{}')) : '{}'}</textarea>
                     </div>
 
                     <div style="margin-bottom: 1rem;">
                         <label style="display:block; margin-bottom: 0.25rem;">Body Template (JSON/Text)</label>
-                        <textarea id="webhook-body" rows="6" class="form-input" style="font-family: monospace; width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.5rem; color: var(--text-primary); border-radius: 0.25rem;" placeholder='{
+                        <textarea id="webhook-body" rows="6" class="form-input" style="font-family: var(--font-mono);" placeholder='{
   "certificate": "{CERT}",
   "private_key": "{KEY}",
   "chain": "{CHAIN}"
@@ -955,51 +1133,50 @@
                 </div>
 
                 <!-- SSH Section -->
-                <div id="section-linux" class="dynamic-section" style="display: none; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--card-border); border-radius: 0.5rem; background: rgba(0,0,0,0.2);">
-                    <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-secondary); display:flex; justify-content:space-between;">
+                <div id="section-linux" class="cyber-panel dynamic-section" style="display: none; margin-bottom: 1rem; padding: 1.5rem;">
+                    <div style="font-weight: 600; margin-bottom: 1rem; color: var(--text-primary); display:flex; justify-content:space-between; align-items:center;">
                         SSH Configuration
-                        <button id="ssh-detect-btn" class="secondary-btn" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">✨ Auto-Detect (Docker)</button>
+                        <button id="ssh-detect-btn" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.25rem 0.75rem;">✨ Auto-Detect (Docker)</button>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <div>
-                            <label style="font-size: 0.8rem;">Username</label>
-                            <input type="text" id="ssh-user" value="${service ? service.user || 'root' : 'root'}" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
+                            <label style="font-size: 0.85rem; margin-bottom: 0.25rem; display:block;">Username</label>
+                            <input type="text" id="ssh-user" value="${service ? service.user || 'root' : 'root'}">
                         </div>
                         <div>
-                            <label style="font-size: 0.8rem;">Password (or key path)</label>
-                            <input type="password" id="ssh-pass" value="${service ? service.password || '' : ''}" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
+                            <label style="font-size: 0.85rem; margin-bottom: 0.25rem; display:block;">Password (or key path)</label>
+                            <input type="password" id="ssh-pass" value="${service ? service.password || '' : ''}">
                         </div>
                     </div>
                     <div style="margin-top: 1rem;">
-                        <label style="font-size: 0.8rem;" id="lbl-ssh-cert">Remote Cert Path</label>
-                        <input type="text" id="ssh-cert-path" value="${service ? service.remote_cert_path || '/etc/ssl/certs/fullchain.pem' : '/etc/ssl/certs/fullchain.pem'}" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
+                        <label style="font-size: 0.85rem; margin-bottom: 0.25rem; display:block;" id="lbl-ssh-cert">Remote Cert Path</label>
+                        <input type="text" id="ssh-cert-path" value="${service ? service.remote_cert_path || '/etc/ssl/certs/fullchain.pem' : '/etc/ssl/certs/fullchain.pem'}">
                     </div>
-                    <div style="margin-top: 0.5rem;">
-                        <label style="font-size: 0.8rem;">Remote Key Path</label>
-                        <input type="text" id="ssh-key-path" value="${service ? service.remote_key_path || '/etc/ssl/private/privkey.pem' : '/etc/ssl/private/privkey.pem'}" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
+                    <div style="margin-top: 1rem;">
+                        <label style="font-size: 0.85rem; margin-bottom: 0.25rem; display:block;">Remote Key Path</label>
+                        <input type="text" id="ssh-key-path" value="${service ? service.remote_key_path || '/etc/ssl/private/privkey.pem' : '/etc/ssl/private/privkey.pem'}">
                     </div>
-                    <div style="margin-top: 0.5rem;">
-                        <label style="font-size: 0.8rem;">Restart Command</label>
-                        <input type="text" id="ssh-cmd" value="${service ? service.restart_cmd || 'systemctl reload nginx' : 'systemctl reload nginx'}" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
+                    <div style="margin-top: 1rem;">
+                        <label style="font-size: 0.85rem; margin-bottom: 0.25rem; display:block;">Restart Command</label>
+                        <input type="text" id="ssh-cmd" value="${service ? service.restart_cmd || 'systemctl reload nginx' : 'systemctl reload nginx'}">
                     </div>
                 </div>
 
-                <!-- Provisioning Section (Shared for Proxmox, TrueNAS, Portainer based functionality) -->
-                <!-- We need to update visibility logic to check BASE TYPE not just alias -->
-                <div id="section-provision" class="dynamic-section" style="display: none; margin-bottom: 1rem; border: 1px dashed var(--card-border); padding: 1rem; border-radius: 0.5rem;">
-                    <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-secondary);">Auto-Provision Credentials</div>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <input type="text" id="prov-user" placeholder="Username (e.g. root)" style="flex:1; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
-                        <input type="password" id="prov-pass" placeholder="Password" style="flex:1; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
-                        <button id="prov-btn" class="secondary-btn" style="padding: 0.4rem 1rem;">Fetch & Fill</button>
+                <!-- Provisioning Section -->
+                <div id="section-provision" class="dynamic-section" style="display: none; margin-bottom: 1rem; border: 1px dashed var(--border-glass); padding: 1.5rem; border-radius: 0.5rem;">
+                    <div style="font-size: 0.95rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">Auto-Provision Credentials</div>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <input type="text" id="prov-user" placeholder="Username (e.g. root)" style="flex:1;">
+                        <input type="password" id="prov-pass" placeholder="Password" style="flex:1;">
+                        <button id="prov-btn" class="btn btn-secondary">Fetch & Fill</button>
                     </div>
-                    <div id="prov-status" style="margin-top: 0.5rem; font-size: 0.8rem;"></div>
+                    <div id="prov-status" style="margin-top: 0.75rem; font-size: 0.85rem;"></div>
                 </div>
 
                 <!-- OPNsense Manual Guide -->
-                <div id="section-opnsense-guide" class="dynamic-section" style="display: none; margin-bottom: 1rem; border: 1px solid var(--accent-color); padding: 1rem; border-radius: 0.5rem; background: rgba(255, 165, 0, 0.1);">
-                    <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--accent-color);">ℹ️ How to get API Credentials</div>
-                    <ol style="font-size: 0.8rem; margin-left: 1.5rem; color: var(--text-secondary); line-height: 1.4;">
+                <div id="section-opnsense-guide" class="dynamic-section" style="display: none; margin-bottom: 1rem; border: 1px solid var(--accent-primary); padding: 1rem; border-radius: 0.5rem; background: rgba(45, 212, 191, 0.05);">
+                    <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--accent-primary);">ℹ️ How to get API Credentials</div>
+                    <ol style="font-size: 0.85rem; margin-left: 1.5rem; color: var(--text-secondary); line-height: 1.5;">
                         <li>Log in to your <strong>OPNsense WebGUI</strong>.</li>
                         <li>Go to <strong>System &gt; Access &gt; Users</strong>.</li>
                         <li>Edit your user (e.g. <code>root</code>) or create a dedicated API user.</li>
@@ -1010,9 +1187,9 @@
                 </div>
 
                 <!-- ClearPass Manual Guide -->
-                <div id="section-clearpass-guide" class="dynamic-section" style="display: none; margin-bottom: 1rem; border: 1px solid var(--accent-color); padding: 1rem; border-radius: 0.5rem; background: rgba(255, 165, 0, 0.1);">
-                    <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--accent-color);">ℹ️ How to get ClearPass Credentials</div>
-                    <ol style="font-size: 0.8rem; margin-left: 1.5rem; color: var(--text-secondary); line-height: 1.4;">
+                <div id="section-clearpass-guide" class="dynamic-section" style="display: none; margin-bottom: 1rem; border: 1px solid var(--accent-primary); padding: 1rem; border-radius: 0.5rem; background: rgba(45, 212, 191, 0.05);">
+                    <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--accent-primary);">ℹ️ How to get ClearPass Credentials</div>
+                    <ol style="font-size: 0.85rem; margin-left: 1.5rem; color: var(--text-secondary); line-height: 1.5;">
                         <li>Log in to <strong>ClearPass Guest</strong>.</li>
                         <li>Go to <strong>Administration &gt; API Services &gt; API Clients</strong>.</li>
                         <li>Create Client: Grant Type = <strong>Client credentials</strong>.</li>
@@ -1022,35 +1199,35 @@
                 </div>
 
                 <!-- ClearPass Configuration -->
-                <div id="section-clearpass-config" class="dynamic-section" style="display: none; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--card-border); border-radius: 0.5rem; background: rgba(0,0,0,0.2);">
-                    <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-secondary);">ClearPass Configuration</div>
+                <div id="section-clearpass-config" class="cyber-panel dynamic-section" style="display: none; margin-bottom: 1rem; padding: 1.5rem;">
+                    <div style="font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">ClearPass Configuration</div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <div>
-                            <label style="font-size: 0.8rem;">Client ID</label>
-                            <input type="text" id="cp-client-id" value="${service ? service.client_id || '' : ''}" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
+                            <label style="font-size: 0.85rem; margin-bottom: 0.25rem;">Client ID</label>
+                            <input type="text" id="cp-client-id" value="${service ? service.client_id || '' : ''}">
                         </div>
                         <div>
-                            <label style="font-size: 0.8rem;">Client Secret</label>
-                            <input type="password" id="cp-client-secret" value="${service ? service.client_secret || '' : ''}" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
+                            <label style="font-size: 0.85rem; margin-bottom: 0.25rem;">Client Secret</label>
+                            <input type="password" id="cp-client-secret" value="${service ? service.client_secret || '' : ''}">
                         </div>
                     </div>
                     <div style="margin-top: 1rem;">
-                        <label style="font-size: 0.8rem;">Additional Nodes (Comma separated IPs/Hosts)</label>
-                        <input type="text" id="cp-additional-nodes" value="${service ? service.additional_nodes || '' : ''}" placeholder="192.168.1.11, 192.168.1.12" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
+                        <label style="font-size: 0.85rem; margin-bottom: 0.25rem;">Additional Nodes (Comma separated IPs/Hosts)</label>
+                        <input type="text" id="cp-additional-nodes" value="${service ? service.additional_nodes || '' : ''}" placeholder="192.168.1.11, 192.168.1.12">
                     </div>
                     <div style="margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                          <div>
-                            <label style="font-size: 0.8rem;">PFX Password (Optional)</label>
-                            <input type="password" id="cp-pfx-pass" value="${service ? service.pfx_password || '' : ''}" placeholder="Auto-generated if empty" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
+                            <label style="font-size: 0.85rem; margin-bottom: 0.25rem;">PFX Password (Optional)</label>
+                            <input type="password" id="cp-pfx-pass" value="${service ? service.pfx_password || '' : ''}" placeholder="Auto-generated if empty">
                         </div>
                         <div>
-                            <label style="font-size: 0.8rem;">Callback Host (Optional)</label>
-                            <input type="text" id="cp-cb-host" value="${service ? service.callback_host || '' : ''}" placeholder="IP of this server (if auto-detect fails)" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
+                            <label style="font-size: 0.85rem; margin-bottom: 0.25rem;">Callback Host (Optional)</label>
+                            <input type="text" id="cp-cb-host" value="${service ? service.callback_host || '' : ''}" placeholder="IP of this server (if auto-detect fails)">
                         </div>
                     </div>
                     <div style="margin-top: 1rem;">
-                        <label style="font-size: 0.8rem;">Certificate Usage</label>
-                        <select id="cp-usage" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
+                        <label style="font-size: 0.85rem; margin-bottom: 0.25rem;">Certificate Usage</label>
+                        <select id="cp-usage">
                             <option value="HTTPS" ${service && service.cert_usage === 'HTTPS' ? 'selected' : ''}>HTTPS (Legacy)</option>
                             <option value="HTTPS(RSA)" ${service && (!service.cert_usage || service.cert_usage === 'HTTPS(RSA)') ? 'selected' : ''}>HTTPS (RSA)</option>
                             <option value="HTTPS(ECC)" ${service && service.cert_usage === 'HTTPS(ECC)' ? 'selected' : ''}>HTTPS (ECC)</option>
@@ -1062,29 +1239,28 @@
                 </div>
 
                 <!-- API Credentials Section -->
-                <div id="section-api-creds" class="dynamic-section" style="display: none; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--card-border); border-radius: 0.5rem; background: rgba(0,0,0,0.2);">
-                     <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-secondary);">API Credentials</div>
-                     <div style="margin-bottom: 0.5rem;">
-                        <label style="font-size: 0.8rem;" id="lbl-api-key">API Key</label>
-                        <input type="text" id="conf-api-key" value="${service ? service.api_key || '' : ''}" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
+                <div id="section-api-creds" class="cyber-panel dynamic-section" style="display: none; margin-bottom: 1rem; padding: 1.5rem;">
+                     <div style="font-weight: 600; margin-bottom: 1rem; color: var(--text-primary);">API Credentials</div>
+                     <div style="margin-bottom: 1rem;">
+                        <label style="font-size: 0.85rem; margin-bottom: 0.25rem;" id="lbl-api-key">API Key</label>
+                        <input type="text" id="conf-api-key" value="${service ? service.api_key || '' : ''}">
                      </div>
                      <div id="div-api-secret">
-                        <label style="font-size: 0.8rem;">API Secret</label>
-                        <input type="password" id="conf-api-secret" value="${service ? service.api_secret || '' : ''}" style="width: 100%; background: transparent; border: 1px solid var(--card-border); padding: 0.4rem; color: var(--text-primary); border-radius: 0.25rem;">
+                        <label style="font-size: 0.85rem; margin-bottom: 0.25rem;">API Secret</label>
+                        <input type="password" id="conf-api-secret" value="${service ? service.api_secret || '' : ''}">
                      </div>
                 </div>
                 
                 <div class="upload-card" style="margin-bottom: 1rem;">
                     <label>Additional Config (JSON)</label>
-                    <textarea id="svc-extra" rows="5" style="background: transparent; border: 1px solid var(--card-border); padding: 0.5rem; color: var(--text-primary); border-radius: 0.25rem; width: 100%; font-family: monospace;">${JSON.stringify(service || {}, null, 2)}</textarea>
+                    <textarea id="svc-extra" rows="5" style="width: 100%; font-family: var(--font-mono);">${JSON.stringify(service || {}, null, 2)}</textarea>
                     <small class="hint">Edit specific fields like 'user', 'token_id', etc. here. 'name', 'host', and 'type' above override this JSON.</small>
                 </div>
                 
-
-                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                    ${isEdit ? '<button id="delete-svc-btn" class="secondary-btn" style="border-color: var(--error-color); color: var(--error-color);">Delete</button>' : ''}
-                    <button id="save-svc-btn" class="secondary-btn" style="border-color: var(--success-color); color: var(--success-color);">Save</button>
-                    <button id="cancel-svc-btn" class="secondary-btn">Cancel</button>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1rem; border-top: 1px solid var(--border-glass);">
+                    ${isEdit ? '<button id="delete-svc-btn" class="btn btn-secondary" style="border-color: var(--status-error); color: var(--status-error);">Delete</button>' : ''}
+                    <button id="save-svc-btn" class="btn btn-primary">Save</button>
+                    <button id="cancel-svc-btn" class="btn btn-secondary">Cancel</button>
                 </div>
                 </form>
             `;
@@ -1160,7 +1336,7 @@
         }
 
         async function openServiceEditorModal(serviceName) {
-            console.log("Opening Editor for:", serviceName);
+
             if (Object.keys(serviceTypesMap).length === 0) {
                 await fetchTypes();
                 // Check again
@@ -1692,6 +1868,26 @@
         function showModal(details, is_inspection = false) {
             let html = '';
 
+            // Determine Status for Theme
+            const modalDrawer = document.querySelector('#cert-modal .modal-drawer');
+            modalDrawer.classList.remove('modal-theme-success', 'modal-theme-error', 'modal-theme-warning');
+
+            let isSuccess = true;
+            if (is_inspection) {
+                if (!details.key_match) isSuccess = false;
+                // Check if any cert in chain is expired
+                if (details.details && Array.isArray(details.details)) {
+                    if (details.details.some(c => c.days_remaining < 0)) isSuccess = false;
+                }
+            } else {
+                // Single cert check
+                if (details.days_remaining < 0) isSuccess = false;
+            }
+
+            if (isSuccess) modalDrawer.classList.add('modal-theme-success');
+            else modalDrawer.classList.add('modal-theme-error');
+
+
             if (is_inspection) {
                 const matchClass = details.key_match ? 'success-text' : 'error-text';
                 const matchText = details.key_match ? 'MATCHED' : 'INVALID/MISMATCH';
@@ -1767,7 +1963,7 @@
                 showToast("Error fetching certificate details", "error");
             }
             viewCertBtn.disabled = false;
-            viewCertBtn.innerText = "View Certificate";
+            viewCertBtn.innerText = "View Default Certificate";
         };
 
         // Cert Modal Close
@@ -1828,6 +2024,12 @@
             // Populate form
             renderServiceForm(svc);
 
+            // Bind Type Manager
+            setTimeout(() => {
+                const btn = document.getElementById('manage-types-btn');
+                if (btn) btn.onclick = renderTypesManager;
+            }, 50);
+
             // Populate Packs
             populatePackSelect(svc.cert_pack_id || 'default');
 
@@ -1859,29 +2061,62 @@
             let html = `
                 <div style="margin-bottom: 1.5rem;">
                     <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1rem;">Available Certificate Packs</h3>
-                    <div style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 0.5rem; border: 1px solid var(--card-border);">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                    <div style="max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 0.5rem; border: 1px solid var(--card-border);">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem; table-layout: fixed;">
+                            <colgroup>
+                                <col style="width: 25%;">
+                                <col style="width: 30%;">
+                                <col>
+                                <col style="width: 80px;">
+                            </colgroup>
                             <thead style="background: rgba(255,255,255,0.05); color: var(--text-secondary); text-align: left;">
                                 <tr>
                                     <th style="padding: 0.75rem;">Name</th>
+                                    <th style="padding: 0.75rem;">Expiry</th>
                                     <th style="padding: 0.75rem;">Path</th>
+                                    <th style="padding: 0.75rem; text-align: center;">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                ${packs.map(p => `
+                                ${packs.map(p => {
+                let expiryDisplay = '<span style="color: var(--text-secondary);">Unknown</span>';
+                if (p.expiry) {
+                    const date = new Date(p.expiry).toLocaleDateString();
+                    const days = p.days_remaining;
+                    let color = 'var(--text-primary)';
+                    if (days < 0) color = 'var(--status-error)';
+                    else if (days < 30) color = 'var(--status-warning)';
+                    else color = 'var(--status-success)';
+
+                    expiryDisplay = `<div style="color: ${color}; font-weight: 500; font-size: 0.85rem; line-height: 1.2;">${date}<br><span style="font-size: 0.75rem; opacity: 0.8;">(${days}d)</span></div>`;
+                }
+
+                return `
                                     <tr style="border-bottom: 1px solid var(--card-border);">
-                                        <td style="padding: 0.75rem;">${p.name}</td>
-                                        <td style="padding: 0.75rem; color: var(--text-secondary); font-family: monospace;">${p.path}</td>
-                                        <td style="padding: 0.75rem;">
-                                            <div style="display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
-                                                <button onclick="inspectPack('${p.id}')" style="background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.8; transition: opacity 0.2s;" title="Inspect Details" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8">🔍</button>
+                                        <td style="padding: 0.75rem; word-break: break-all; vertical-align: middle;">${p.name}</td>
+                                        <td style="padding: 0.75rem; vertical-align: middle;">${expiryDisplay}</td>
+                                        <td style="padding: 0.75rem; color: var(--text-secondary); font-family: monospace; overflow-wrap: break-word; word-break: break-all; font-size: 0.75rem; vertical-align: middle; line-height: 1.4;">${p.path}</td>
+                                        <td style="padding: 0.75rem; vertical-align: middle;">
+                                            <div style="display: flex; gap: 0.6rem; justify-content: center; align-items: center;">
+                                                <button class="cyber-icon-btn check" onclick="inspectPack('${p.id}')" title="Inspect Details">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/>
+                                                        <circle cx="12" cy="12" r="3" stroke-dasharray="2 3"/>
+                                                        <path d="M12 9v6M9 12h6" stroke-opacity="0.4"/>
+                                                    </svg>
+                                                </button>
                                                 ${p.id !== 'default' ?
-                    `<button onclick="deletePack('${p.id}')" style="background: none; border: none; cursor: pointer; color: var(--error-color); font-size: 1.1rem; opacity: 0.8; transition: opacity 0.2s;" title="Delete Pack" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8">🗑️</button>`
-                    : '<span style="color:var(--text-secondary); font-size:0.8rem; white-space: nowrap;">(Locked)</span>'}
+                        `<button class="cyber-icon-btn delete" onclick="deletePack('${p.id}')" title="Delete Pack">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                        <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>
+                                                    </svg>
+                                                </button>`
+                        : '<span style="color:var(--text-secondary); font-size:0.65rem; opacity: 0.6; white-space: nowrap;">LOCKED</span>'}
                                             </div>
                                         </td>
                                     </tr>
-                                `).join('')}
+                                    `;
+            }).join('')}
                             </tbody>
                         </table>
                     </div>
@@ -1891,28 +2126,48 @@
                     <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1rem;">Upload New Pack</h3>
                     <div style="display: grid; gap: 1rem;">
                         <div>
-                            <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-secondary);">Pack Name</label>
-                            <input type="text" id="new-pack-name" placeholder="e.g. staging-cert" style="width: 100%; padding: 0.6rem; background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); border-radius: 0.3rem; color: var(--text-primary);">
+                            <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Pack Name</label>
+                            <input type="text" id="new-pack-name" placeholder="e.g. staging-cert" style="width: 100%; padding: 0.6rem; background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); border-radius: 0.3rem; color: var(--text-primary); font-family: var(--font-primary);">
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <!-- Leaf Cert -->
                             <div>
-                                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-secondary);">Leaf Certificate</label>
-                                <input type="file" id="new-pack-cert" style="width: 100%; font-size: 0.8rem; color: var(--text-secondary);">
+                                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Leaf Certificate</label>
+                                <div class="file-upload-wrapper">
+                                    <input type="file" id="new-pack-cert" class="cyber-file-input" onchange="updateFileName(this, 'display-pack-cert')">
+                                    <label for="new-pack-cert" class="cyber-file-label">CHOOSE FILE</label>
+                                    <span id="display-pack-cert" class="file-name-display">NO_FILE_CHOSEN</span>
+                                </div>
                             </div>
+                            <!-- Private Key -->
                             <div>
-                                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-secondary);">Private Key</label>
-                                <input type="file" id="new-pack-key" style="width: 100%; font-size: 0.8rem; color: var(--text-secondary);">
+                                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Private Key</label>
+                                <div class="file-upload-wrapper">
+                                    <input type="file" id="new-pack-key" class="cyber-file-input" onchange="updateFileName(this, 'display-pack-key')">
+                                    <label for="new-pack-key" class="cyber-file-label">CHOOSE FILE</label>
+                                    <span id="display-pack-key" class="file-name-display">NO_FILE_CHOSEN</span>
+                                </div>
                             </div>
+                            <!-- Intermediate -->
                             <div>
-                                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-secondary);">Intermediate CA (Optional)</label>
-                                <input type="file" id="new-pack-inter" style="width: 100%; font-size: 0.8rem; color: var(--text-secondary);">
+                                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Intermediate CA (Optional)</label>
+                                <div class="file-upload-wrapper">
+                                    <input type="file" id="new-pack-inter" class="cyber-file-input" onchange="updateFileName(this, 'display-pack-inter')">
+                                    <label for="new-pack-inter" class="cyber-file-label">CHOOSE FILE</label>
+                                    <span id="display-pack-inter" class="file-name-display">NO_FILE_CHOSEN</span>
+                                </div>
                             </div>
+                            <!-- Root CA -->
                             <div>
-                                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-secondary);">Root CA (Optional)</label>
-                                <input type="file" id="new-pack-root" style="width: 100%; font-size: 0.8rem; color: var(--text-secondary);">
+                                <label style="display: block; font-size: 0.8rem; margin-bottom: 0.4rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Root CA (Optional)</label>
+                                <div class="file-upload-wrapper">
+                                    <input type="file" id="new-pack-root" class="cyber-file-input" onchange="updateFileName(this, 'display-pack-root')">
+                                    <label for="new-pack-root" class="cyber-file-label">CHOOSE FILE</label>
+                                    <span id="display-pack-root" class="file-name-display">NO_FILE_CHOSEN</span>
+                                </div>
                             </div>
                         </div>
-                        <button id="upload-pack-btn" style="justify-self: start; background: var(--accent-color); color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 0.3rem; cursor: pointer; font-weight: 500; margin-top: 0.5rem;">Upload Pack</button>
+                        <button id="upload-pack-btn" class="btn btn-primary" style="justify-self: start; margin-top: 0.5rem;">Upload Pack</button>
                     </div>
                     <div id="pack-upload-status" style="margin-top: 0.8rem; font-size: 0.9rem;"></div>
                 </div>
@@ -2092,6 +2347,23 @@
             });
         }
         setInterval(updateTimers, 10000); // Update every 10 seconds
+
+        // Helper for Custom File Inputs
+        function updateFileName(input, displayId) {
+            const display = document.getElementById(displayId);
+            if (input.files && input.files.length > 0) {
+                display.textContent = input.files[0].name;
+                display.style.color = 'var(--text-primary)';
+            } else {
+                display.textContent = 'NO_FILE_CHOSEN';
+                display.style.color = 'var(--text-secondary)';
+            }
+        }
+
+        // Expose critical functions to window for dynamic HTML onclicks
+        window.renderTypesManager = renderTypesManager;
+        window.openServiceEditor = openServiceEditor;
+        window.updateFileName = updateFileName;
 
         init();
     </script>

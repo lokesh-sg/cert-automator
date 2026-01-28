@@ -104,20 +104,46 @@ class CertManager:
         return os.path.exists(cert_path) and has_key
 
     def list_cert_packs(self):
-        """Returns a list of available certificate packs."""
+        """Returns a list of available certificate packs with details."""
         root_path = os.path.abspath(self.cert_dir)
-        packs = [{"id": "default", "name": "Default (Root)", "path": root_path}]
+        packs = []
         
-        # Scan for subdirectories
+        # Helper to get details
+        def get_pack_details(pack_id, pack_path):
+            details = {
+                "id": pack_id,
+                "name": pack_id if pack_id != 'default' else "Default (Root)",
+                "path": pack_path,
+                "expiry": None,
+                "days_remaining": None
+            }
+            
+            try:
+                cert_path = os.path.join(pack_path, "fullchain.pem")
+                if os.path.exists(cert_path):
+                    with open(cert_path, 'rb') as f:
+                        cert_data = f.read()
+                    
+                    cert_obj = self.validator.load_cert(cert_data)
+                    if cert_obj:
+                        info = self.validator.get_cert_details(cert_obj)
+                        details['expiry'] = info.get('expiry')
+                        details['days_remaining'] = info.get('days_remaining')
+            except Exception as e:
+                self.logger.error(f"Failed to get details for pack {pack_id}: {e}")
+                
+            return details
+
+        # 1. Default Pack
+        packs.append(get_pack_details("default", root_path))
+        
+        # 2. Subdirectories
         if os.path.exists(self.cert_dir):
             for item in os.listdir(self.cert_dir):
                 item_path = os.path.join(self.cert_dir, item)
                 if os.path.isdir(item_path) and not item.startswith('.'):
-                    packs.append({
-                        "id": item,
-                        "name": item,
-                        "path": os.path.abspath(item_path)
-                    })
+                    packs.append(get_pack_details(item, os.path.abspath(item_path)))
+                    
         return packs
 
     def save_cert_pack(self, name, cert_content, key_content):
@@ -429,20 +455,42 @@ class CertManager:
         self.logger.info(f"Health Check Complete. Updated {changes_count} services.")
         return True
 
-    def check_certificates_ready(self):
+    def check_certificates_status(self):
         """
-        Checks if certificates exist for configured services.
-        Returns detailed status or boolean.
+        Returns a detailed status of all certificate packs.
         """
-        # Simple check: do we have any services?
-        services = self.get_services()
-        if not services: return False
+        packs = self.list_cert_packs()
         
-        # Check if at least one service has a valid cert file
-        # This is a loose check for the dashboard badge
-        for svc in services:
-             pack = svc.get('cert_pack_id') or svc.get('cert_pack')
-             path, _ = self.get_cert_paths(pack)
-             path, _ = self.get_cert_paths(pack)
-             if os.path.exists(path): return True
-        return False
+        default_exists = False
+        default_ready = False
+        expired_count = 0
+        total_packs = len(packs)
+        
+        for p in packs:
+            # Existence check (must have expiry parsed)
+            if p['id'] == 'default' and p.get('expiry'):
+                default_exists = True
+                if p.get('days_remaining', 0) > 0:
+                    default_ready = True
+            
+            # Expiry check
+            if p.get('days_remaining') is not None and p.get('days_remaining') <= 0:
+                expired_count += 1
+                
+        # Global "ready" means default exists AND nothing is expired
+        global_ready = default_ready and expired_count == 0
+        
+        return {
+            "default_exists": default_exists,
+            "default_ready": default_ready,
+            "total_packs": total_packs,
+            "expired_packs": expired_count,
+            "ready": global_ready
+        }
+
+
+    # Keep legacy for compatibility if needed elsewhere
+    def check_certificates_ready(self):
+        status = self.check_certificates_status()
+        return status["default_ready"]
+

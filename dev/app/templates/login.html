@@ -4,9 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Cert Automator</title>
+    <title>CertAutomator - Access Control</title>
     <link rel="icon" type="image/png" href="/static/favicon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
@@ -16,36 +18,115 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            background: #050505;
+            background-image:
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
             color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        /* Ambient Glow */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.05) 0%, transparent 70%);
+            z-index: -1;
+            pointer-events: none;
         }
 
         .login-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 2rem;
-            border-radius: 1rem;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            padding: 2.5rem;
+            border-radius: 12px;
             width: 100%;
-            max-width: 400px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 420px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(0, 240, 255, 0.1);
+            position: relative;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .login-header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .logo-container {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 240, 255, 0.05);
+            border: 2px solid rgba(0, 240, 255, 0.5);
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.25), inset 0 0 15px rgba(0, 240, 255, 0.1);
+            padding: 8px;
+            animation: pulseGlow 4s infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                box-shadow: 0 0 25px rgba(0, 240, 255, 0.2);
+                border-color: rgba(0, 240, 255, 0.4);
+            }
+
+            100% {
+                box-shadow: 0 0 45px rgba(0, 240, 255, 0.4);
+                border-color: rgba(0, 240, 255, 0.8);
+            }
+        }
+
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            border-radius: 6px;
         }
 
         .login-header h1 {
-            font-size: 1.5rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.25rem;
             font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin: 0;
         }
 
-        .login-header p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
+        .status-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--status-warning);
+            border: 1px solid var(--status-warning);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(255, 179, 0, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .form-group {
@@ -56,57 +137,96 @@
             display: block;
             margin-bottom: 0.5rem;
             color: var(--text-secondary);
-            font-size: 0.85rem;
+            font-size: 0.75rem;
+            font-family: 'Inter', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .form-group input {
             width: 100%;
-            padding: 0.75rem;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.5rem;
-            color: white;
-            font-family: inherit;
-            transition: border-color 0.2s;
+            padding: 0.85rem 1rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-glass);
+            border-radius: 6px;
+            color: var(--accent-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            transition: all 0.2s;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: var(--primary-color);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+            background: rgba(0, 240, 255, 0.05);
         }
 
         .btn-primary {
             width: 100%;
-            padding: 0.75rem;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-weight: 500;
+            padding: 0.9rem;
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--accent-primary);
+            border: 1px solid var(--accent-primary);
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
         }
 
         .btn-primary:hover {
-            background: var(--secondary-color);
+            background: var(--accent-primary);
+            color: #000;
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            filter: grayscale(1);
         }
 
         .error-msg {
-            color: var(--error-color);
-            font-size: 0.85rem;
-            margin-top: 1rem;
+            color: var(--status-error);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            margin-top: 1.25rem;
             text-align: center;
             display: none;
+            padding: 0.5rem;
+            background: rgba(255, 42, 109, 0.1);
+            border: 1px solid rgba(255, 42, 109, 0.3);
+            border-radius: 4px;
         }
 
-        /* Modal CSS */
+        .forgot-link {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-decoration: none;
+            transition: color 0.2s;
+            display: inline-block;
+            border-bottom: 1px solid transparent;
+        }
+
+        .forgot-link:hover {
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        /* Modal CSS Overrides for Login Context */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -118,25 +238,44 @@
         }
 
         .modal-content {
-            background: #1e293b;
+            background: #0a0a0a;
             padding: 2rem;
-            border-radius: 1rem;
+            border-radius: 8px;
             width: 90%;
-            max-width: 400px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            max-width: 450px;
+            border: 1px solid var(--status-error);
+            box-shadow: 0 0 40px rgba(255, 42, 109, 0.2);
+            animation: modalPop 0.3s ease-out;
+        }
+
+        @keyframes modalPop {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .modal-header h3 {
             margin: 0 0 1rem 0;
-            color: var(--error-color);
+            color: var(--status-error);
+            font-family: 'Inter', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .modal-body {
-            margin-bottom: 2rem;
+            color: var(--text-secondary);
             font-size: 0.9rem;
-            color: #cbd5e1;
-            line-height: 1.5;
+            line-height: 1.6;
+            margin-bottom: 2rem;
         }
 
         .modal-footer {
@@ -147,20 +286,38 @@
 
         .btn-secondary {
             background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
+            border: 1px solid var(--border-glass);
+            color: var(--text-secondary);
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
             cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-primary);
+            color: var(--text-primary);
         }
 
         .btn-danger {
-            background: var(--error-color);
-            border: none;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
+            background: rgba(255, 42, 109, 0.1);
+            border: 1px solid var(--status-error);
+            color: var(--status-error);
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
             cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            box-shadow: 0 0 10px rgba(255, 42, 109, 0.1);
+        }
+
+        .btn-danger:hover {
+            background: var(--status-error);
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 42, 109, 0.4);
         }
 
         /* Toast CSS */
@@ -172,14 +329,31 @@
         }
 
         .toast {
-            background: #334155;
-            color: white;
-            padding: 1rem;
+            background: rgba(10, 10, 10, 0.9);
+            color: var(--text-primary);
+            padding: 1rem 1.5rem;
             margin-top: 0.5rem;
-            border-radius: 0.5rem;
-            border-left: 4px solid var(--primary-color);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            border: 1px solid var(--border-glass);
+            border-left: 4px solid var(--accent-primary);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
             animation: slideIn 0.3s ease-out;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .toast::before {
+            content: '';
+            display: block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-primary);
+            box-shadow: 0 0 8px var(--accent-primary);
         }
 
         @keyframes slideIn {
@@ -199,54 +373,61 @@
 <body>
     <div class="login-card">
         <div class="login-header">
-            <h1>Cert Automator</h1>
-            <p>Please log in to unlock configuration</p>
+            <div class="logo-container">
+                <img src="/static/app_icon.png" alt="CertAutomator Logo">
+            </div>
+            <div>
+                <h1>Cert Automator</h1>
+                <div style="margin-top: 0.5rem; display: flex; justify-content: center;">
+                    <span class="status-badge">SYSTEM LOCKED</span>
+                </div>
+            </div>
         </div>
         <form id="login-form">
             <div class="form-group">
                 <label>Username</label>
-                <input type="text" id="username" required autofocus>
+                <input type="text" id="username" required autofocus autocomplete="off" placeholder="ACCESS_ID">
             </div>
             <div class="form-group">
-                <label>Master Password</label>
-                <input type="password" id="password" required>
+                <label>Master Key</label>
+                <input type="password" id="password" required placeholder="••••••••••••">
             </div>
-            <button type="submit" class="btn-primary" id="login-btn">Unlock</button>
+            <button type="submit" class="btn-primary" id="login-btn">Authenticate</button>
             <div id="error-msg" class="error-msg"></div>
 
-            <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem;">
-                <a href="#" id="reset-link"
-                    style="color: var(--text-secondary); text-decoration: none; border-bottom: 1px dotted var(--text-secondary);">Forgot
-                    Password? (Reset Config)</a>
+            <div style="margin-top: 1.5rem; text-align: center;">
+                <a href="#" id="reset-link" class="forgot-link">INITIATE SYSTEM RESET</a>
             </div>
         </form>
     </div>
-    <div style="margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.8rem; text-align: center; opacity: 0.5;">
-        {{ app_version }}
+
+    <div
+        style="margin-top: 2rem; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; text-align: center; opacity: 0.4; letter-spacing: 0.05em;">
+        SECURE VAULT // {{ app_version }}
     </div>
 
     <!-- Confirmation Modal -->
     <div id="reset-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>⚠️ FACTORY RESET WARNING</h3>
+                <h3>⚠️ Factory Reset Warning</h3>
             </div>
             <div class="modal-body">
-                <p>This action will <strong>DELETE</strong> your specific 'config.yaml' and 'auth.json' files.</p>
-                <p>ALL Services, configurations, and the Master Password will be lost.</p>
-                <p style="margin-top:1rem;">Use this ONLY if you have forgotten your password and need to start fresh.
-                </p>
+                <p>This action will <strong>PERMANENTLY DELETE</strong> your 'config.yaml' and 'auth.json' files.</p>
+                <p>ALL Services, certificates, and the Master Password will be lost.</p>
+                <p style="margin-top:1rem; color: var(--text-primary);">Use this ONLY if you have lost access and need
+                    to re-initialize the vault.</p>
                 <div style="margin-top: 1.5rem;">
                     <label
-                        style="display:block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Verification
-                        (Password or Reset Token from Logs)</label>
+                        style="display:block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem; text-transform: uppercase;">Verification
+                        (Current Password or Token)</label>
                     <input type="password" id="reset-verify"
-                        style="width: 100%; padding: 0.75rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; color: white;">
+                        style="width: 100%; padding: 0.85rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); border-radius: 6px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace;">
                 </div>
             </div>
             <div class="modal-footer">
                 <button id="cancel-reset" class="btn-secondary">Cancel</button>
-                <button id="confirm-reset" class="btn-danger">Yes, Reset System</button>
+                <button id="confirm-reset" class="btn-danger">CONFIRM RESET</button>
             </div>
         </div>
     </div>
@@ -278,13 +459,16 @@
             const errorDiv = document.getElementById('error-msg');
 
             btn.disabled = true;
-            btn.innerText = "Unlocking...";
+            btn.innerText = "AUTHENTICATING...";
             errorDiv.style.display = 'none';
 
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
             try {
+                // Add artificial delay for 'security feel'
+                await new Promise(r => setTimeout(r, 600));
+
                 const res = await secureFetch('/login', {
                     method: 'POST',
                     body: JSON.stringify({ username, password })
@@ -292,18 +476,22 @@
                 const data = await res.json();
 
                 if (data.success) {
-                    window.location.href = '/';
+                    btn.innerText = "ACCESS GRANTED";
+                    btn.style.borderColor = "var(--status-success)";
+                    btn.style.color = "var(--status-success)";
+                    btn.style.boxShadow = "0 0 20px rgba(0, 255, 157, 0.4)";
+                    setTimeout(() => window.location.href = '/', 500);
                 } else {
-                    errorDiv.innerText = data.message;
+                    errorDiv.innerText = "ACCESS DENIED: " + data.message;
                     errorDiv.style.display = 'block';
                     btn.disabled = false;
-                    btn.innerText = "Unlock";
+                    btn.innerText = "Authenticate";
                 }
             } catch (err) {
-                errorDiv.innerText = "Connection Error";
+                errorDiv.innerText = "CONNECTION BREAK";
                 errorDiv.style.display = 'block';
                 btn.disabled = false;
-                btn.innerText = "Unlock";
+                btn.innerText = "Authenticate";
             }
         };
 
@@ -320,11 +508,10 @@
 
         document.getElementById('confirm-reset').onclick = async () => {
             resetModal.classList.add('hidden');
-            // Show processing toast?
-            showToast("Resetting System...");
+            showToast("INITIATING SYSTEM RESET...");
 
             const verify = document.getElementById('reset-verify').value;
-            if (!verify) return showToast("Verification required (Password or Token)");
+            if (!verify) return showToast("VERIFICATION REQUIRED");
 
             try {
                 const res = await secureFetch('/api/reset', {
@@ -333,13 +520,13 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showToast("System Reset Complete. Redirecting...");
-                    setTimeout(() => window.location.href = '/setup', 1500);
+                    showToast("SYSTEM WIPED. REBOOTING...");
+                    setTimeout(() => window.location.href = '/setup', 2000);
                 } else {
-                    showToast("Reset Failed: " + data.message);
+                    showToast("RESET FAILED: " + data.message);
                 }
             } catch (err) {
-                showToast("Connection Error during reset.");
+                showToast("CONNECTION ERROR");
             }
         };
     </script>

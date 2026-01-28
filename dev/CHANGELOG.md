@@ -1,3 +1,20 @@
+## [v1.1.3.20260127.14] - 2026-01-27
+### UI Modernization ("Cyber Vault" Overhaul)
+- **Login Screen**: Completely rewrote the login experience with a "Cyber Glass" aesthetic, featuring a pulsing animated logo, neon Cyan borders, and a "System Locked" status indicator.
+- **Branding**: Deployed a new High-Visibility App Icon (54px) designed for maximum contrast in dark mode, replacing the legacy SVG.
+- **Typography**: Standardized on `Inter` for UI elements and `JetBrains Mono` for all technical data inputs and logs.
+
+### UX Improvements
+- **Dynamic Certificate Modals**: The Certificate Details modal now intelligently changes theme based on status:
+    - **Green Glow**: Valid certificate & healthy chain.
+    - **Red Glow**: Expired certificate, broken chain, or key mismatch.
+- **Sidebar**: Enhanced visual hierarchy with larger branding and refined navigation spacing.
+
+### Security & Stability
+- **Dependency Hardening**: Pinned all core dependencies (`Flask`, `Cryptography`, `Paramiko`, `Requests`) to their latest secure versions in `requirements.txt` to mitigate known CVEs.
+- **Code Sweep**: Removed all debug artifacts (`console.log`, `print`) from production code paths.
+- **Vulnerability Check**: Verified data sanitation in the new dynamic modal rendering logic.
+
 ## [v1.1.2.20260127.13] - 2026-01-27
 ### Added
 - **Wazuh Dashboard Integration**: Full automated support for Wazuh Dashboard certificate renewals.
