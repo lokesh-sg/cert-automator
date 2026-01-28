@@ -30,6 +30,15 @@ CertAutomator speaks the language of your favorite local and enterprise services
 
 ---
 
+## What's New in v1.1.3? (Project Aegis)
+- **"Cyber Vault" UI Overhaul**: Stunning high-contrast technical aesthetic with precision geometry and neon accents.
+- **CyberSelect™ Engine**: Custom dropdown system that bypasses macOS/Linux system limitations for perfect `JetBrains Mono` rendering.
+- **Stable Log Handling**: Intelligent anchor-based scroll locking for real-time monitoring.
+- **Broad Integration**: Native support for Proxmox, TrueNAS, OMV, Portainer, OPNsense, and Wazuh.
+- **Health Intelligence**: Dynamic status badges that analyze certificate health across your entire network.
+
+---
+
 ## Quick Start
 
 ### 1. Create a `docker-compose.yml`
@@ -38,7 +47,7 @@ version: '3.8'
 
 services:
   cert-automator:
-    image: lokesh1729/cert-automator:latest
+    image: lokeshsg/cert-automator:latest
     container_name: cert-automator
     restart: unless-stopped
     ports:

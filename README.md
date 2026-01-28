@@ -89,13 +89,14 @@ Visit `http://localhost:5050` to initialize your vault!
 
 ---
 
-## What's New in v1.1.2?
-- **OMV Native Integration**: Zero-config SSH updates for OpenMediaVault with auto-tagging.
-- **Wazuh Dashboard Integration**: Full automation with permission handling and config auto-correction.
-- **Portainer Auto-Detect**: SSH-based detection for both certificate and key paths (`--sslcert`, `--sslkey`).
-- **Live Timers**: Real-time renewal countdowns.
-- **Production Ready**: Switched to Gunicorn WSGI server.
-- See [CHANGELOG.md](documentation/changelog.md) for full details.
+## What's New in v1.1.3? (Project Aegis)
+- **"Cyber Vault" UI Overhaul**: A complete visual transformation featuring glassmorphism, high-contrast neon accents, and `JetBrains Mono` typography.
+- **CyberSelect™ Engine**: Custom dropdown system that bypasses OS limitations to ensure perfect font rendering on macOS and Linux.
+- **Stable Log Scrolling**: Intelligent anchor-based scroll locking for real-time log monitoring.
+- **OMV & Wazuh Integration**: Native handlers for OpenMediaVault and Wazuh Dashboard.
+- **Health Intelligence**: New dynamic status badges that analyze certificate health across all packs in real-time.
+- **Production Hardened**: Optimized Gunicorn deployment with multi-arch (amd64/arm64) Docker support.
+- See [CHANGELOG.md](documentation/changelog.md) for full version history.
 
 ---
 
