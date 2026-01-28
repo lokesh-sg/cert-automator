@@ -1,5 +1,57 @@
 # System Architecture - Certificate Automation Tool
 
+**Version**: 1.1.3
+**Date**: 2026-01-27
+**Author**: Systems Architecture Team
+
+## 1. High-Level Design
+The system follows a **Controller-Adapter** pattern encapsulated within a **Dockerized** Flask application.
+
+```mermaid
+graph TD
+    User[User / Admin] -->|HTTPS| WebUI[Web Dashboard]
+    WebUI -->|REST API| Flask[Flask Backend Controller]
+    Flask -->|Load| Config["Config Manager (YAML)"]
+    Flask -->|Instantiate| Factory[Handler Factory]
+    
+    subgraph Service Handlers
+    Factory -->|Create| H1[Proxmox Handler]
+    Factory -->|Create| H2[TrueNAS Handler]
+    Factory -->|Create| H3[Wazuh Handler]
+    Factory -->|Create| H4[Generic SSH Handler]
+    end
+    
+    H1 -->|HTTPS/API| Ext1[Proxmox Node]
+    H2 -->|HTTPS/API| Ext2[TrueNAS Scale]
+    H3 -->|SSH/SCP| Ext3[Wazuh Dashboard]
+```
+
+## 2. Technology Stack
+- **Runtime**: Python 3.11 (Slim Bookworm)
+- **Web Framework**: Flask (Gunicorn WSGI)
+- **Frontend**: HTML5, Vanilla JS, CSS3 (Cyber Vault Theme)
+- **Cryptography**: `cryptography` (Python Lib) - AES-256
+- **Transport**: `requests` (HTTP/S), `paramiko` (SSH/SCP)
+
+## 3. Core Modules
+1.  **`CertManager`**: Orchestration engine.
+2.  **`ConfigManager`**: Dynamic configuration and encryption handling.
+3.  **`CertificateHandler`**: Abstract Interface for service adapters.
+
+## 4. Security Considerations
+-   **Encrypted Storage**: 
+    -   Credentials in `config.yaml` (Fernet AES-128).
+    -   Private Keys (`privkey.enc`) (AES-256).
+-   **Least Privilege**: Container runs as `appuser` (UID 1000).
+-   **Hardening**:
+    -   Debug artifacts removed.
+    -   Dependencies pinned.
+    -   Glassmorphism UI with Visual Security Indicators ("System Locked").
+
+## 5. Deployment
+- **Docker First**: Deployment is managed purely via Docker images (`<DOCKER_HUB_USER>/cert-automator`).
+- **Persistence**: Usage of Docker Volumes for `/certs`, `/backups`, and `/config`.
+
 **Version**: 1.0  
 **Date**: 2026-01-02  
 **Author**: Systems Architecture Team

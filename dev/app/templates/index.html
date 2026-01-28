@@ -891,12 +891,17 @@
             let html = `
                 <div class="cyber-panel" style="margin-bottom: 1.5rem; padding: 1.5rem;">
                     <h4 style="margin-top:0; margin-bottom: 1rem; color: var(--text-primary);">Add New Type / Context</h4>
-                    <div style="display: flex; gap: 0.75rem;">
-                        <input type="text" id="new-type-name" placeholder="Name (e.g. 'Nginx', 'My Router')" style="flex:1;">
-                        <select id="new-type-base" style="width: auto;">
-                             ${availableBaseHandlers.map(h => `<option value="${h}">${h}</option>`).join('')}
-                        </select>
-                        <button id="add-type-btn" class="btn btn-secondary" style="border-color: var(--status-success); color: var(--status-success);">Add</button>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <input type="text" id="new-type-name" placeholder="Name (e.g. 'Nginx')" 
+                               style="width: 100%; padding: 0.75rem 1rem; background: rgba(10, 10, 10, 0.6); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); color: var(--text-primary);">
+                        <div style="display: flex; gap: 0.75rem; align-items: stretch;">
+                            <div style="flex: 1;">
+                                <select id="new-type-base" style="width: 100%;">
+                                     ${availableBaseHandlers.map(h => `<option value="${h}">${h}</option>`).join('')}
+                                </select>
+                            </div>
+                            <button id="add-type-btn" class="btn btn-secondary" style="border-color: var(--status-success); color: var(--status-success); padding: 0 2rem; font-weight: bold;">ADD</button>
+                        </div>
                     </div>
                 </div>
                 <div style="max-height: 400px; overflow-y: auto;">
@@ -2366,6 +2371,183 @@
         window.updateFileName = updateFileName;
 
         init();
+    </script>
+    <script>
+        // --- CYBER DROPDOWN REPLACEMENT (Silent Font Fix) ---
+        class CyberSelect {
+            constructor(nativeSelect) {
+                if (nativeSelect.dataset.cyberized) return;
+                this.nativeSelect = nativeSelect;
+                this.nativeSelect.dataset.cyberized = "true";
+                this.nativeSelect.style.display = 'none';
+
+                this.wrapper = document.createElement('div');
+                this.wrapper.className = 'cyber-select-wrapper';
+                this.wrapper.style.position = 'relative';
+                this.wrapper.style.fontFamily = 'var(--font-primary)';
+                this.wrapper.style.width = '100%';
+
+                this.trigger = document.createElement('div');
+                this.trigger.className = 'cyber-select-trigger';
+                this.trigger.tabIndex = 0;
+                // Match input styling
+                this.trigger.style.background = 'rgba(10, 10, 10, 0.6)';
+                this.trigger.style.border = '1px solid var(--border-glass)';
+                this.trigger.style.padding = '0.75rem 1rem';
+                this.trigger.style.borderRadius = 'var(--radius-sm)';
+                this.trigger.style.color = 'var(--text-primary)';
+                this.trigger.style.cursor = 'pointer';
+                this.trigger.style.display = 'flex';
+                this.trigger.style.justifyContent = 'space-between';
+                this.trigger.style.alignItems = 'center';
+
+                this.optionsList = document.createElement('div');
+                this.optionsList.className = 'cyber-select-options';
+                this.optionsList.style.position = 'absolute';
+                this.optionsList.style.top = '100%';
+                this.optionsList.style.left = '0';
+                this.optionsList.style.right = '0';
+                this.optionsList.style.background = '#000'; // Pure black for high contrast
+                this.optionsList.style.border = '1px solid var(--accent-primary)';
+                this.optionsList.style.borderRadius = 'var(--radius-sm)';
+                this.optionsList.style.zIndex = '3000';
+                this.optionsList.style.display = 'none';
+                this.optionsList.style.maxHeight = '250px';
+                this.optionsList.style.overflowY = 'auto';
+                this.optionsList.style.boxShadow = '0 10px 30px rgba(0,0,0,0.8)';
+                this.optionsList.style.marginTop = '4px';
+
+                this.wrapper.appendChild(this.trigger);
+                this.wrapper.appendChild(this.optionsList);
+                this.nativeSelect.parentNode.insertBefore(this.wrapper, this.nativeSelect);
+
+                this.init();
+            }
+
+            init() {
+                // Sync Initial Value
+                this.renderOptions();
+                this.updateTrigger();
+
+                // Trigger Click
+                this.trigger.onclick = (e) => {
+                    e.stopPropagation();
+                    this.toggle();
+                };
+
+                // Outside Click
+                document.addEventListener('click', (e) => {
+                    if (!this.wrapper.contains(e.target)) this.close();
+                });
+
+                // Listen for native updates (if logic updates the select directly)
+                this.nativeSelect.addEventListener('change', () => this.updateTrigger());
+
+                // Mutation Observer in case options change dynamically
+                new MutationObserver(() => this.renderOptions()).observe(this.nativeSelect, { childList: true });
+            }
+
+            renderOptions() {
+                this.optionsList.innerHTML = '';
+                const groups = this.nativeSelect.querySelectorAll('optgroup');
+
+                if (groups.length > 0) {
+                    groups.forEach(group => {
+                        const grpLabel = document.createElement('div');
+                        grpLabel.innerText = group.label;
+                        grpLabel.style.padding = '0.5rem 1rem';
+                        grpLabel.style.fontSize = '0.7rem';
+                        grpLabel.style.fontWeight = 'bold';
+                        grpLabel.style.color = 'var(--text-secondary)';
+                        grpLabel.style.textTransform = 'uppercase';
+                        grpLabel.style.background = 'rgba(255,255,255,0.05)';
+                        this.optionsList.appendChild(grpLabel);
+
+                        group.querySelectorAll('option').forEach(opt => this.createOption(opt));
+                    });
+                } else {
+                    this.nativeSelect.querySelectorAll('option').forEach(opt => this.createOption(opt));
+                }
+            }
+
+            createOption(nativeOpt) {
+                const opt = document.createElement('div');
+                opt.innerText = nativeOpt.innerText;
+                opt.style.padding = '0.75rem 1rem';
+                opt.style.cursor = 'pointer';
+                opt.style.transition = 'background 0.1s';
+                opt.dataset.value = nativeOpt.value;
+
+                if (nativeOpt.selected) {
+                    opt.style.color = 'var(--accent-primary)';
+                    opt.style.background = 'rgba(0, 240, 255, 0.1)';
+                    // Add checkmark
+                    opt.innerHTML = `<span style="display:flex; justify-content:space-between; align-items:center;">${nativeOpt.innerText} <span>✓</span></span>`;
+                }
+
+                opt.onmouseover = () => {
+                    if (!nativeOpt.selected) opt.style.background = 'rgba(255,255,255,0.05)';
+                };
+                opt.onmouseout = () => {
+                    if (!nativeOpt.selected) opt.style.background = 'transparent';
+                };
+
+                opt.onclick = (e) => {
+                    e.stopPropagation();
+                    this.nativeSelect.value = nativeOpt.value;
+                    this.nativeSelect.dispatchEvent(new Event('change'));
+                    this.updateTrigger();
+                    this.close();
+                };
+
+                this.optionsList.appendChild(opt);
+            }
+
+            updateTrigger() {
+                const selected = this.nativeSelect.options[this.nativeSelect.selectedIndex];
+                this.trigger.innerHTML = `<span style="display:flex; justify-content:space-between; align-items:center; width:100%">${selected ? selected.innerText : 'Select...'} <span style="font-size:0.7rem; opacity:0.7">▼</span></span>`;
+                this.renderOptions(); // Re-render to update checkmark
+            }
+
+            toggle() {
+                const isOpen = this.optionsList.style.display === 'block';
+                // Close all others
+                document.querySelectorAll('.cyber-select-options').forEach(el => el.style.display = 'none');
+                if (!isOpen) {
+                    this.optionsList.style.display = 'block';
+                    this.trigger.style.borderColor = 'var(--accent-primary)';
+                    this.trigger.style.boxShadow = '0 0 10px rgba(0, 240, 255, 0.1)';
+                } else {
+                    this.close();
+                }
+            }
+
+            close() {
+                this.optionsList.style.display = 'none';
+                this.trigger.style.borderColor = 'var(--border-glass)';
+                this.trigger.style.boxShadow = 'none';
+            }
+        }
+
+        // Auto-Initialize on DOM Change (Silent Upgrade)
+        // We'll hook into your renderServiceForm and other dynamic injections by observing the body
+        const cyberObserver = new MutationObserver((mutations) => {
+            document.querySelectorAll('select:not([data-cyberized])').forEach(el => {
+                // Ignore hidden manual selects or if explicitly opted out
+                if (el.offsetParent !== null) { // Only visible selects
+                    new CyberSelect(el);
+                } else {
+                    // Even hidden ones should be upgraded or they will pop in ugly then switch
+                    // But if we hide them, form logic still works.
+                    new CyberSelect(el);
+                }
+            });
+        });
+
+        // Start Observing Modal Bodies
+        document.addEventListener('DOMContentLoaded', () => {
+            cyberObserver.observe(document.body, { childList: true, subtree: true });
+        });
     </script>
 </body>
 

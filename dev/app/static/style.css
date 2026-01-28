@@ -11,6 +11,7 @@
     /* Dark Metal */
     --bg-glass: rgba(10, 10, 10, 0.9);
     /* High opacity for legibility */
+    color-scheme: dark;
 
     --accent-primary: #00f0ff;
     /* Cyber Cyan */
@@ -78,8 +79,9 @@ button,
 input,
 select,
 textarea,
-option {
-    font-family: var(--font-primary);
+option,
+optgroup {
+    font-family: var(--font-primary) !important;
 }
 
 /* --- Layout --- */

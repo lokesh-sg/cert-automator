@@ -1,53 +1,45 @@
 # Release Process
 
 **Author**: Lokesh G
+**Updated**: 2026-01-27
 
-Follow this checklist to ship a new version of CertAutomator safely and consistently.
+Follow this checklist to ship a new version of CertAutomator safely.
 
 ## 1. Prepare
-- [ ] **Sanitize**: Ensure `dev/app` contains no secret files (`config.yaml`, `auth.json`).
-- [ ] **Changelog**: Update `dev/CHANGELOG.md` with new features and fixes under a new version header (e.g., `## [1.2.0]`).
+- [ ] **Sanitize**: Ensure `dev/app` is clean.
+- [ ] **Changelog**: Update `dev/CHANGELOG.md`.
+- [ ] **Version**: Bump version in `dev/app/version.json`.
 
-## 2. Build
-Run the build automation script. This will increment the build number, archive the code, and update the `prod/` directory.
-
-```bash
-python3 build_scripts/build.py
-```
-
-*Note the output version, e.g., `v1.1.1.20260109.10`.*
-
-## 3. Package & Push Docker
-Run the packaging script to build multi-arch images and push them to Docker Hub.
-
-```bash
-./dist/package_for_sharing.sh
-```
-- **Tag**: The script pushes `latest`.
-- **Specific Tag**: Manually tag the specific build to preserve history:
-  ```bash
-  docker buildx imagetools create -t lokeshsg/cert-automator:v1.1.1.20260109.11 lokeshsg/cert-automator:latest
-  ```
-
-## 4. Git Release
-Commit the changes (changelog + build bump) and tag the commit.
+## 2. Git Release
+Commit changes and tag the release version.
 
 ```bash
 git add .
-git commit -m "Release v1.1.1.20260109.11"
-git push origin main
+git commit -m "Release vX.Y.Z: Description"
+git tag vX.Y.Z
+git push origin main --tags
 ```
 
-**Tagging**:
+## 3. Docker Release
+Build and push the multi-tag image to Docker Hub.
+
 ```bash
-# Tag with the specific build ID
-git tag -a v1.1.1.20260109.11 -m "Release v1.1.1.20260109.11"
-git push origin v1.1.1.20260109.11
+# Login first
+docker login
+
+# Setup Builder (Once)
+docker buildx create --use
+
+# Build & Push Multi-Arch
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -t <DOCKER_HUB_USER>/cert-automator:vX.Y.Z \
+  -t <DOCKER_HUB_USER>/cert-automator:latest \
+  -f dev/Dockerfile dev/ --push
 ```
 
-## 5. GitHub Release
-1. Go to [GitHub Releases](https://github.com/lokesh-sg/cert-automator/releases).
-2. Draft a new release (or edit existing).
-3. **Tag**: Select `v1.1.1.20260109.11`.
-4. **Description**: Copy the relevant section from `dev/CHANGELOG.md`.
-5. **Assets**: Upload the `.tar` files generated in Step 3 (optional, for offline users).
+## 4. Documentation
+Sync the documentation changes.
+
+```bash
+cp dev/CHANGELOG.md documentation/changelog.md
+```

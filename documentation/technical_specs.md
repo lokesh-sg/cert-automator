@@ -1,5 +1,67 @@
 # Technical Specifications - Certificate Automation Tool
 
+**Version**: v1.1.3.20260127.14
+**Date**: 2026-01-27
+**Author**: Lokesh G
+
+## 1. Project Structure
+```text
+/cert-automate/
+├── dev/                     # Source of Truth
+│   ├── app/
+│   │   ├── static/          # CSS/JS (Cyber Vault Theme)
+│   │   ├── templates/       # HTML
+│   │   ├── server.py        # Flask App / Entrypoint
+│   │   ├── cert_manager.py  # Logic Core
+│   │   └── *_handler.py     # Service Adapters
+│   ├── config.yaml          # Service Configuration
+│   ├── Dockerfile           # Production-Ready Image Build
+│   └── docker-compose.yml   # Dev Orchestration
+├── certs/                   # Active Certificates (Volume Mount)
+├── backups/                 # Config & Cert Backups
+├── documentation/           # System Docs
+└── run_dev.sh               # Local Development Launcher
+```
+
+## 2. Path Configuration Logic
+The application employs "Smart Path Resolution" to handle Docker and Local environments seamlessly.
+
+**Priority Order:**
+1.  **Environment Variable** (`CERT_DIR`, `BACKUP_DIR`) - Highest priority.
+2.  **Docker Mounts** (Auto-Detection) - Checks `/certs` and `/backups`.
+3.  **Local Relative** (Fallback) - Uses `./certs` relative to app root.
+
+## 3. Security Specifications
+- **Private Key Storage**: AES-256 Encrypted (`privkey.enc`) at rest.
+- **Config Storage**: Fernet (AES-128) encrypted service credentials.
+- **Runtime**:
+    - **Non-Root**: Runs as `appuser` (UID 1000).
+    - **Dependencies**: Pinned to latest secure versions.
+    - **Validation**: Strict file path sanitation.
+
+## 4. API Reference
+REST API on port `5050`. Protected by session auth and CSRF tokens.
+
+### Core Endpoints
+- **GET** `/api/status`: System health and service states.
+- **POST** `/api/renew/<service>`: Trigger renewal.
+- **POST** `/api/upload`: Multipart upload for new certificates.
+- **GET** `/api/logs`: Real-time application logs.
+
+## 5. Environment Setup
+### Prerequisites
+- Docker & Docker Compose
+
+### Development
+```bash
+./run_dev.sh
+```
+
+### Production Build
+```bash
+docker build -t cert-automator:latest -f dev/Dockerfile dev/
+```
+
 **Version**: v1.1.1.20260109.11
 **Date**: 2026-01-06
 **Author**: Lokesh G

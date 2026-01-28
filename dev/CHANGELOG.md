@@ -12,8 +12,6 @@
 
 ### Security & Stability
 - **Dependency Hardening**: Pinned all core dependencies (`Flask`, `Cryptography`, `Paramiko`, `Requests`) to their latest secure versions in `requirements.txt` to mitigate known CVEs.
-- **Code Sweep**: Removed all debug artifacts (`console.log`, `print`) from production code paths.
-- **Vulnerability Check**: Verified data sanitation in the new dynamic modal rendering logic.
 
 ## [v1.1.2.20260127.13] - 2026-01-27
 ### Added

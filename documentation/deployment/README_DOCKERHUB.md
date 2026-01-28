@@ -38,7 +38,7 @@ version: '3.8'
 
 services:
   cert-automator:
-    image: lokeshsg/cert-automator:latest
+    image: lokesh1729/cert-automator:latest
     container_name: cert-automator
     restart: unless-stopped
     ports:
