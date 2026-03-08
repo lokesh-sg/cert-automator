@@ -1,4 +1,18 @@
+## [v1.2.0.20260308.02] - 2026-03-08
+### Added
+- **Bulk Service Pack Assignment**: New "Assign" button in the Certificate Manager allows bulk-assigning multiple services to a certificate pack in a single operation.
+    - A checklist modal displays all services with their current source, pre-checked if already on that pack.
+    - "Select All" checkbox support for rapid assignment.
+    - New backend API endpoint `POST /api/services/bulk-update-pack` to handle atomic multi-service updates.
+
+### Fixed
+- **Service Pack Selection UI**: Resolved a visual desync bug in the custom `CyberSelect` dropdown component where the trigger text did not update after options were dynamically loaded via `populatePackSelect`.
+    - Fixed `populatePackSelect` to use `secureFetch` (was using plain `fetch`, causing auth failures on CSRF-protected endpoints).
+    - Fixed missing `await` on `populatePackSelect`, which caused a race condition leaving the dropdown empty.
+    - Updated `CyberSelect` `MutationObserver` to call `updateTrigger()` whenever options change, ensuring the label always reflects the selected value.
+
 ## [v1.2.0.20260308.01] - 2026-03-08
+
 ### Added (Certificate Sources)
 - **Native ACME (Let's Encrypt/ZeroSSL)**: Added full ACME client support for automated certificate issuance and renewal.
     - **DNS-01 Challenge**: Integrated Cloudflare DNS provider for secure, automated domain verification.
