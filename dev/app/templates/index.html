@@ -568,18 +568,20 @@
             <div class="services-table-wrapper" style="overflow-x:auto;">
                 <table class="services-table" style="width:100%; border-collapse: separate; border-spacing: 0 0.5rem;">
                     <colgroup>
-                        <col style="width: 20%;">
-                        <col style="width: 20%;">
-                        <col style="width: 10%;">
-                        <col style="width: 20%;">
                         <col style="width: 15%;">
-                        <col style="width: 180px;"> <!-- Fixed Actions Width -->
+                        <col style="width: 15%;">
+                        <col style="width: 10%;">
+                        <col style="width: 18%;">
+                        <col style="width: 12%;">
+                        <col style="width: 13%;">
+                        <col style="width: 160px;"> <!-- Fixed Actions Width -->
                     </colgroup>
                     <thead>
                         <tr style="color: var(--text-secondary); font-family: var(--font-primary); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; text-align: left;">
                             <th style="padding: 1rem;">Service Name</th>
                             <th style="padding: 1rem;">Host / IP</th>
                             <th style="padding: 1rem;">Type</th>
+                            <th style="padding: 1rem;">Source</th>
                             <th style="padding: 1rem;">Health</th>
                             <th style="padding: 1rem;">Renewal</th>
                             <th style="padding: 1rem; text-align:right;">Actions</th>
@@ -650,8 +652,13 @@
                         <td style="padding: 1rem; border-bottom: 1px solid var(--border-glass);">
                             <div style="font-family: var(--font-primary); color: var(--accent-primary); font-size: 0.85rem;">${svc.host || '<span style="opacity:0.3">--</span>'}</div>
                         </td>
-                        <td style="padding: 1rem; border-bottom: 1px solid var(--border-glass);">
+                         <td style="padding: 1rem; border-bottom: 1px solid var(--border-glass);">
                             <span style="font-family: var(--font-primary); font-size:0.75rem; border: 1px solid var(--border-glass); padding: 2px 6px; text-transform: uppercase;">${svc.type || 'UNK'}</span>
+                        </td>
+                        <td style="padding: 1rem; border-bottom: 1px solid var(--border-glass);">
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); opacity: 0.8; font-family: var(--font-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;" title="${svc.cert_pack_id || svc.cert_pack || 'default'}">
+                                ${svc.cert_pack_id || svc.cert_pack || 'default'}
+                            </div>
                         </td>
                         <td style="padding: 1rem; border-bottom: 1px solid var(--border-glass);">
                             ${healthHtml}
@@ -1579,7 +1586,7 @@
             if (!select) return;
 
             try {
-                const res = await fetch(`${API_BASE}/certificates`);
+                const res = await secureFetch(`${API_BASE}/certificates`);
                 const data = await res.json();
 
                 // Clear existing (except maybe the header if we wanted one, but innerHTML overwrite is cleaner here)
@@ -1601,10 +1608,16 @@
                         } else {
                             opt.value = pack.id;
                             opt.innerText = pack.name; // Display Name
+                            // Robust matching: exact ID, or ID without 'src-' prefix if applicable
                             if (pack.id === currentValue) opt.selected = true;
+                            else if (currentValue && !currentValue.startsWith('src-') && pack.id === 'src-' + currentValue) opt.selected = true;
                         }
                         select.appendChild(opt);
                     });
+
+                    // Final enforcement of value (Ensures UI pick-up)
+                    select.value = currentValue;
+                    select.dispatchEvent(new Event('change'));
                 }
             } catch (e) {
                 console.error("Failed to fetch cert packs", e);
@@ -1634,7 +1647,8 @@
 
             // Populate Dropdown
             populateTypeSelect(service ? service.type : null);
-            populatePackSelect(service ? service.cert_pack_id : 'default');
+            const savedPack = service ? (service.cert_pack_id || service.cert_pack) : 'default';
+            await populatePackSelect(savedPack);
 
             // --- BIND EVENT LISTENERS (Dynamic Elements) ---
 
@@ -1914,6 +1928,7 @@
                 current.name = name;
                 current.host = host;
                 current.type = alias; // Save Alias
+                current.cert_pack_id = document.getElementById('config-cert-pack') ? document.getElementById('config-cert-pack').value : 'default';
 
                 // SSH/Linux/Portainer/Syncthing/OMV/Wazuh
                 if (['linux', 'portainer', 'syncthing', 'omv', 'wazuh'].includes(type) && type !== 'webhook') {
@@ -2034,6 +2049,14 @@
                 const el = document.getElementById(id);
                 if (el) el.oninput = updateJson;
             });
+
+            // Cert Pack Input
+            const cpSelect = document.getElementById('config-cert-pack');
+            if (cpSelect) {
+                cpSelect.onchange = (e) => {
+                    updateJson();
+                };
+            }
 
             // Initial call to set visibility and JSON
             updateJson();
@@ -2374,6 +2397,11 @@
                                         <td style="padding: 0.75rem; color: var(--text-secondary); font-family: monospace; overflow-wrap: break-word; word-break: break-all; font-size: 0.75rem; vertical-align: middle; line-height: 1.4;">${p.path}</td>
                                         <td style="padding: 0.75rem; vertical-align: middle;">
                                             <div style="display: flex; gap: 0.6rem; justify-content: center; align-items: center;">
+                                                <button class="cyber-icon-btn settings" onclick="openBulkAssignModal('${p.id}')" title="Bulk Assign to Services">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                                    </svg>
+                                                </button>
                                                 <button class="cyber-icon-btn check" onclick="inspectPack('${p.id}')" title="Inspect Details">
                                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                                         <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/>
@@ -2510,6 +2538,98 @@
             } catch (e) {
                 showToast("Delete failed: " + e, "error");
             }
+        };
+
+        window.openBulkAssignModal = async (packId) => {
+            const modal = document.getElementById('action-modal');
+            const modalTitle = document.getElementById('action-modal-title');
+            const modalBody = document.getElementById('action-modal-body');
+            const modalFooter = document.getElementById('action-modal-footer');
+
+            modalTitle.innerText = `Assign Services to ${packId === 'default' ? 'Default (Root)' : packId}`;
+            modalFooter.style.display = 'flex';
+
+            // Get all services
+            const services = currentServices || [];
+
+            let html = `
+                <div style="margin-bottom: 1.5rem;">
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                        Select the services you want to assign to this certificate pack.
+                    </p>
+                    <div style="max-height: 300px; overflow-y: auto; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); border-radius: var(--radius-sm);">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                            <thead style="position: sticky; top: 0; background: #0a0a0a; z-index: 10;">
+                                <tr style="background: rgba(255,255,255,0.05); text-align: left;">
+                                    <th style="padding: 0.75rem; width: 40px;"><input type="checkbox" id="bulk-select-all" onclick="toggleAllBulk(this)"></th>
+                                    <th style="padding: 0.75rem;">Service Name</th>
+                                    <th style="padding: 0.75rem;">Current Source</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${services.map(s => {
+                const source = s.cert_pack_id || s.cert_pack || 'default';
+                const isChecked = source === packId;
+                return `
+                                        <tr style="border-bottom: 1px solid var(--border-glass);">
+                                            <td style="padding: 0.75rem;"><input type="checkbox" class="bulk-svc-check" data-name="${s.name}" ${isChecked ? 'checked' : ''}></td>
+                                            <td style="padding: 0.75rem;">${s.name}</td>
+                                            <td style="padding: 0.75rem; color: var(--text-secondary);">${source}</td>
+                                        </tr>
+                                    `;
+            }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            modalBody.innerHTML = html;
+
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'btn btn-primary';
+            saveBtn.innerText = 'Save Assignments';
+            saveBtn.onclick = async () => {
+                const selected = Array.from(document.querySelectorAll('.bulk-svc-check:checked')).map(el => el.getAttribute('data-name'));
+
+                saveBtn.disabled = true;
+                saveBtn.innerText = 'Saving...';
+
+                try {
+                    const res = await secureFetch(`${API_BASE}/services/bulk-update-pack`, {
+                        method: 'POST',
+                        body: JSON.stringify({ service_names: selected, cert_pack_id: packId })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        showToast(`Successfully assigned ${selected.length} services`, "success");
+                        hideActionModal();
+                        fetchStatus(); // Refresh dashboard
+                    } else {
+                        showToast("Failed: " + data.message, "error");
+                    }
+                } catch (e) {
+                    showToast("Error: " + e, "error");
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.innerText = 'Save Assignments';
+                }
+            };
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn btn-secondary';
+            cancelBtn.innerText = 'Cancel';
+            cancelBtn.onclick = hideActionModal;
+
+            modalFooter.innerHTML = '';
+            modalFooter.appendChild(cancelBtn);
+            modalFooter.appendChild(saveBtn);
+
+            actionModal.classList.remove('hidden');
+        };
+
+        window.toggleAllBulk = (master) => {
+            document.querySelectorAll('.bulk-svc-check').forEach(el => el.checked = master.checked);
         };
 
         // Global Inspect Pack
@@ -2715,7 +2835,10 @@
                 this.nativeSelect.addEventListener('change', () => this.updateTrigger());
 
                 // Mutation Observer in case options change dynamically
-                new MutationObserver(() => this.renderOptions()).observe(this.nativeSelect, { childList: true });
+                new MutationObserver(() => {
+                    this.renderOptions();
+                    this.updateTrigger();
+                }).observe(this.nativeSelect, { childList: true });
             }
 
             renderOptions() {

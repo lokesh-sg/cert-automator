@@ -267,6 +267,25 @@ class ConfigManager:
         self.config['services'] = services
         self.save_config()
 
+    def bulk_update_services_pack(self, service_names, cert_pack_id):
+        """
+        Updates the cert_pack_id for multiple services at once.
+        """
+        services = self.get_services()
+        updated = False
+        for s in services:
+            if s.get('name') in service_names:
+                s['cert_pack_id'] = cert_pack_id
+                # Also remove legacy if exists to avoid confusion
+                if 'cert_pack' in s:
+                    del s['cert_pack']
+                updated = True
+        
+        if updated:
+            self.config['services'] = services
+            self.save_config()
+        return updated
+
     def delete_service(self, name):
         services = self.get_services()
         initial_len = len(services)

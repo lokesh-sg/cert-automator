@@ -613,6 +613,21 @@ def update_service():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 400
 
+@app.route('/api/services/bulk-update-pack', methods=['POST'])
+def bulk_update_services_pack():
+    try:
+        data = request.json
+        service_names = data.get('service_names', [])
+        cert_pack_id = data.get('cert_pack_id')
+        
+        if not cert_pack_id:
+            return jsonify({"success": False, "message": "Certificate Pack ID is required"}), 400
+            
+        success = manager.config_mgr.bulk_update_services_pack(service_names, cert_pack_id)
+        return jsonify({"success": True, "message": f"Updated {len(service_names)} services"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 400
+
 @app.route('/api/services/delete', methods=['POST'])
 def delete_service():
     try:
@@ -948,4 +963,4 @@ if __name__ == '__main__':
     app.temp_registry = {}
     
     # Port 5050 to avoid MacOS AirPlay conflict on 5000
-    app.run(host='0.0.0.0', port=5050)
+    app.run(host='0.0.0.0', port=5050, debug=False)
