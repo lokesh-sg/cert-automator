@@ -1,6 +1,8 @@
-# CertAutomator
+# CertAutomator 🚀🔒
 
 **The Centralized "Vault" that Solves the Pain of Certificate Renewals.**
+
+![Main Dashboard](assets/images/CertAutomator%20Dashboard.png)
 
 > [!NOTE]
 > This is a personal hobby project of mine, built to eliminate the manual toil and frustration of managing SSL certificates across different platforms.
@@ -9,19 +11,24 @@ CertAutomator is a powerful, secure, and user-friendly web application designed 
 
 ---
 
-## Key Features
+## 🌟 New in v1.1.0
+- **⚡ Live Timers**: Watch your renewal timestamps tick in real-time.
+- **🛡️ Secure by Default**: Now runs strictly as non-root (UID 1000) with Gunicorn for production robustness.
+- **🩹 Auto-Refresh**: UI automatically updates health status after renewal campaigns.
 
-### Secure by Design
-- **Encrypted Local Vault**: All credentials, configs, and **Private Keys** (`privkey.enc`) are AES-encrypted on disk.
+## 🌟 Key Features
+
+### 🛡️ Secure by Design
+- **Encrypted Local Vault**: Your service configurations and credentials are encrypted on disk using a master password.
 - **Hardened Sessions**: Built-in CSRF protection, HttpOnly cookies, and strict session management.
 - **Emergency Access**: Every deployment generates a unique one-time Emergency Reset Token in the logs.
 
-### Intelligent Automation
+### 🤖 Intelligent Automation
 - **Zero-Touch Startup**: Automatically verifies the health of all local and remote certificates immediately upon launch.
 - **Nightly Health Checks**: Runs a global verification engine every night at 12:30 AM to catch expiring certificates before they cause outages.
 - **UTC-Aware Accuracy**: Precision expiration tracking synced to global UTC time.
 
-### Broad Integration Support
+### 🔌 Broad Integration Support
 CertAutomator speaks the language of your favorite local and enterprise services:
 - **API Drivers**: Proxmox, TrueNAS (SCALE/CORE), OPNsense, Portainer.
 - **SSH/SCP Tunneling**: Syncthing, Wazuh, Heimdall, Generic Linux.
@@ -30,19 +37,25 @@ CertAutomator speaks the language of your favorite local and enterprise services
 
 ---
 
-## What's New in v1.2.0? (Project Chronos)
-- **Native ACME Integration**: Automated certificate issuance and renewal via Let's Encrypt/ZeroSSL using DNS-01 (Cloudflare).
-- **Nginx Proxy Manager Sources**: Intelligent "Pull" integration with zero-restart logic and serial-number verification.
-- **Enterprise Security Hardening**: Forced network timeouts across all handlers to prevent DoS, and infrastructure pivot to Python 3.13.
-- **Improved Reliability**: Repaired cryptography dependencies and standardized PEM-encoded ACME CSRs.
+## 📸 Screenshots
+
+### Advanced Certificate Management
+![Cert Manager](assets/images/Certificate%20Manager.png)
+*Manage your certificate packs and detect upcoming expirations.*
+
+![Cert Details](assets/images/Certificate%20Details.png)
+*Inspect certificate chains and verify key matching deep in the details.*
+
+### Service Integration
+![Service List](assets/images/Service%20Manager.png)
+*View and manage all your integrated services in one place.*
+
+![Add Service](assets/images/Add%20Service.png)
+*Easily provision credentials and map certificates to services like Proxmox, TrueNAS, and Portainer.*
 
 ---
 
-## What's New in v1.1.3? (Project Aegis)
-
----
-
-## Quick Start
+## 🚀 Quick Start
 
 ### 1. Create a `docker-compose.yml`
 ```yaml
@@ -63,13 +76,18 @@ services:
       - ./logs:/app/logs
     environment:
       - FLASK_SECRET=GenerateASecretStringHere
+      # Note: PUID/PGID are not supported yet.
+      # The container strictly runs as UID 1000.
 ```
 
-### 2. Initialize & Launch
+### 2. Permissions (Crucial!)
+Since CertAutomator runs as a secure non-root user (**UID 1000**), you must ensure your mounted volumes are writable by this user.
+
+**Run this on your host:**
 ```bash
-# Create persistent storage files
-touch config.yaml auth.json
-mkdir -p certs backup logs
+# Set ownership to appuser (1000:1000)
+chown -R 1000:1000 config.yaml auth.json certs backup logs
+```
 
 # Fire it up
 docker compose up -d
@@ -80,7 +98,7 @@ Visit `http://[server-ip]:5050` to set your administrator credentials and initia
 
 ---
 
-## How it Works
+## 🛠️ How it Works
 1. **Upload**: You upload a certificate pack (Cert + Key + optional Chain) once.
 2. **Assign**: You map that certificate to your services (e.g., "Proxmox Cluster").
 3. **Automate**: CertAutomator handles the transmission, format conversion, and service restarts for you.
@@ -88,7 +106,7 @@ Visit `http://[server-ip]:5050` to set your administrator credentials and initia
 
 ---
 
-## Community & Support
-CertAutomator is built for the community. If you encounter issues or want to suggest a new handler, please check the logs or reach out on [GitHub](https://github.com/lokesh-sg/cert-automator)! 
+## 🤝 Community & Support
+CertAutomator is built for the community. If you encounter issues or want to suggest a new handler, please check the logs or reach out on GitHub! 
 
 *Built with ❤️ for privacy and automation.*

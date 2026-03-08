@@ -1,4 +1,4 @@
-# CertAutomator
+# CertAutomator 🚀🔒
 
 **The Centralized "Vault" that Solves the Pain of Certificate Renewals.**
 
@@ -9,19 +9,19 @@ CertAutomator is a powerful, secure, and user-friendly web application designed 
 
 ---
 
-## Key Features
+## 🌟 Key Features
 
-### Secure by Design
-- **Encrypted Local Vault**: All credentials, configs, and **Private Keys** (`privkey.enc`) are AES-encrypted on disk.
+### 🛡️ Secure by Design
+- **Encrypted Local Vault**: Your service configurations and credentials are encrypted on disk using a master password.
 - **Hardened Sessions**: Built-in CSRF protection, HttpOnly cookies, and strict session management.
 - **Emergency Access**: Every deployment generates a unique one-time Emergency Reset Token in the logs.
 
-### Intelligent Automation
+### 🤖 Intelligent Automation
 - **Zero-Touch Startup**: Automatically verifies the health of all local and remote certificates immediately upon launch.
 - **Nightly Health Checks**: Runs a global verification engine every night at 12:30 AM to catch expiring certificates before they cause outages.
 - **UTC-Aware Accuracy**: Precision expiration tracking synced to global UTC time.
 
-### Broad Integration Support
+### 🔌 Broad Integration Support
 CertAutomator speaks the language of your favorite local and enterprise services:
 - **API Drivers**: Proxmox, TrueNAS (SCALE/CORE), OPNsense, Portainer.
 - **SSH/SCP Tunneling**: Syncthing, Wazuh, Heimdall, Generic Linux.
@@ -30,19 +30,14 @@ CertAutomator speaks the language of your favorite local and enterprise services
 
 ---
 
-## What's New in v1.2.0? (Project Chronos)
-- **Native ACME Integration**: Automated certificate issuance and renewal via Let's Encrypt/ZeroSSL using DNS-01 (Cloudflare).
-- **Nginx Proxy Manager Sources**: Intelligent "Pull" integration with zero-restart logic and serial-number verification.
-- **Enterprise Security Hardening**: Forced network timeouts across all handlers to prevent DoS, and infrastructure pivot to Python 3.13.
-- **Improved Reliability**: Repaired cryptography dependencies and standardized PEM-encoded ACME CSRs.
+## 🚀 What's New in v1.2.0? (Project Chronos)
+- **Native ACME Integration**: Automated issuance and renewal via Let's Encrypt using DNS-01 (Cloudflare).
+- **Nginx Proxy Manager Sources**: Automated "Pull" integration with pulse-check logic to prevent redundant restarts.
+- **Security Hardening**: Global API timeouts and base image upgrade to Python 3.13.
 
 ---
 
-## What's New in v1.1.3? (Project Aegis)
-
----
-
-## Quick Start
+## 🚀 Quick Start
 
 ### 1. Create a `docker-compose.yml`
 ```yaml
@@ -80,7 +75,7 @@ Visit `http://[server-ip]:5050` to set your administrator credentials and initia
 
 ---
 
-## How it Works
+## 🛠️ How it Works
 1. **Upload**: You upload a certificate pack (Cert + Key + optional Chain) once.
 2. **Assign**: You map that certificate to your services (e.g., "Proxmox Cluster").
 3. **Automate**: CertAutomator handles the transmission, format conversion, and service restarts for you.
@@ -88,7 +83,7 @@ Visit `http://[server-ip]:5050` to set your administrator credentials and initia
 
 ---
 
-## Community & Support
-CertAutomator is built for the community. If you encounter issues or want to suggest a new handler, please check the logs or reach out on [GitHub](https://github.com/lokesh-sg/cert-automator)! 
+## 🤝 Community & Support
+CertAutomator is built for the community. If you encounter issues or want to suggest a new handler, please check the logs or reach out on GitHub! 
 
 *Built with ❤️ for privacy and automation.*

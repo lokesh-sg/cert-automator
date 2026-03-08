@@ -1,3 +1,24 @@
+## [v1.2.0.20260308.01] - 2026-03-08
+### Added (Certificate Sources)
+- **Native ACME (Let's Encrypt/ZeroSSL)**: Added full ACME client support for automated certificate issuance and renewal.
+    - **DNS-01 Challenge**: Integrated Cloudflare DNS provider for secure, automated domain verification.
+    - **Intelligent Account Management**: Automatic ACME account registration and persistence.
+- **Nginx Proxy Manager Integration**: Introduced the ability to "Pull" certificates directly from an NPM instance.
+    - **Multi-Source Logic**: Optimized to fetch certificates from both NPM database and filesystem.
+    - **Zero-Restart Injection**: Implemented a "Smart Pulse" check that only updates certificates if the serial number has changed, preventing unnecessary upstream service restarts.
+
+### Security & Hardening
+- **Denial of Service (DoS) Prevention**: Implemented mandatory 10/30-second timeouts across all external API handlers (OPNsense, Proxmox, Cloudflare, Portainer, TrueNAS).
+- **Infrastructure Upgrade**: Bumped base Docker images to **Python 3.13-slim-bookworm** for enhanced security and performance.
+- **Dependency Audit**: Updated all core dependencies (`cryptography`, `flask`, `requests`, `acme`) to their latest secure versions.
+- **Vulnerability Remediation**: Verified path traversal protections and input sanitation in all file-serving endpoints.
+
+### Fixed
+- **ACME Protocol**: Resolved `MalformedFraming` errors by standardizing PEM-encoded CSRs.
+- **Library Compatibility**: Fixed `AttributeError` in ACME challenge imports for newer versions of the `acme-python` library.
+- **Naming Conventions**: Fixed a bug where certificate packs were being double-prefixed with `src-src-`.
+- **Environment Stability**: Fixed a critical `ModuleNotFoundError` for `cryptography` caused by SMB filesystem locking during updates.
+
 ## [v1.1.3.20260127.14] - 2026-01-27
 ### UI Modernization ("Cyber Vault" Overhaul)
 - **Login Screen**: Completely rewrote the login experience with a "Cyber Glass" aesthetic, featuring a pulsing animated logo, neon Cyan borders, and a "System Locked" status indicator.
