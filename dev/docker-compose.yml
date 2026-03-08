@@ -13,6 +13,7 @@ services:
       - CERT_DIR=/certs
       - BACKUP_DIR=/backup
       - FLASK_SECRET=change-me-in-prod
+      - TZ=America/Los_Angeles
       # Mount SSH keys if using SSH handlers
       # - ~/.ssh:/root/.ssh:ro 
     command: [] # No args needed for server

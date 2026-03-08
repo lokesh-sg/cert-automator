@@ -18,6 +18,7 @@ services:
       - CERT_DIR=/certs
       - BACKUP_DIR=/backup
       - FLASK_SECRET=GenerateYourOwnSecretHere
+      - TZ=America/Los_Angeles
       - LOG_FILE=/app/logs/cert_automate.log
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:5050/api/health" ]
