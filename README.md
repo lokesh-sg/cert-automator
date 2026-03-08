@@ -1,4 +1,4 @@
-# Cert Automator
+# CertAutomator - v1.2.0.20260308.01
 > Enterprise-grade Certificate Management Solution
 
 **The Centralized "Vault" for Automated SSL Certificate Management.**

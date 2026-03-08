@@ -1,113 +1,68 @@
-# System Architecture - Certificate Automation Tool
+# System Architecture - CertAutomator
 
-**Version**: 1.1.3
-**Date**: 2026-01-27
+**Version**: 1.2.0
+**Date**: 2026-03-08
 **Author**: Systems Architecture Team
 
 ## 1. High-Level Design
-The system follows a **Controller-Adapter** pattern encapsulated within a **Dockerized** Flask application.
+CertAutomator 1.2.0 introduces a modular **Source-Storage-Sink** architecture to handle the full lifecycle of SSL/TLS certificates.
 
 ```mermaid
 graph TD
     User[User / Admin] -->|HTTPS| WebUI[Web Dashboard]
-    WebUI -->|REST API| Flask[Flask Backend Controller]
-    Flask -->|Load| Config["Config Manager (YAML)"]
-    Flask -->|Instantiate| Factory[Handler Factory]
+    WebUI -->|REST API| Flask[Flask Backend]
     
-    subgraph Service Handlers
-    Factory -->|Create| H1[Proxmox Handler]
-    Factory -->|Create| H2[TrueNAS Handler]
-    Factory -->|Create| H3[Wazuh Handler]
-    Factory -->|Create| H4[Generic SSH Handler]
+    subgraph Inbound Sources
+    ACME[ACME Source / Let's Encrypt]
+    NPM[NPM Source / Pull]
+    UPLOAD[Manual Upload]
     end
     
-    H1 -->|HTTPS/API| Ext1[Proxmox Node]
-    H2 -->|HTTPS/API| Ext2[TrueNAS Scale]
-    H3 -->|SSH/SCP| Ext3[Wazuh Dashboard]
+    ACME -->|Fetch| Manager[Cert Manager Orchestrator]
+    NPM -->|Pull| Manager
+    UPLOAD -->|POST| Manager
+    
+    Manager -->|AES-256| Storage[(Local Encrypted Storage)]
+    
+    Manager -->|Deploy| Factory[Handler Factory]
+    
+    subgraph Sinks / Handlers
+    Factory -->|Proxmox| H1[PVE Handler]
+    Factory -->|TrueNAS| H2[SCALE Handler]
+    Factory -->|Nginx| H3[Generic SSH]
+    Factory -->|Aruba| H4[ClearPass]
+    end
+    
+    H1 -->|HTTPS| Ext1[Proxmox Node]
+    H2 -->|WS/REST| Ext2[TrueNAS Node]
+    H3 -->|SSH| Ext3[Linux Host]
+    H4 -->|REST| Ext4[ClearPass Cluster]
 ```
 
 ## 2. Technology Stack
-- **Runtime**: Python 3.11 (Slim Bookworm)
-- **Web Framework**: Flask (Gunicorn WSGI)
-- **Frontend**: HTML5, Vanilla JS, CSS3 (Cyber Vault Theme)
-- **Cryptography**: `cryptography` (Python Lib) - AES-256
-- **Transport**: `requests` (HTTP/S), `paramiko` (SSH/SCP)
+- **Runtime**: Python 3.13 (Slim Bookworm)
+- **Web Framework**: Flask 3.x (Gunicorn WSGI)
+- **Security**: 
+    - `cryptography` (AES-256 for Keys, Fernet AES-128 for Config)
+    - PBKDF2HMAC (100,000 iterations for key derivation)
+- **Transport**: 
+    - `requests` (HTTP/S with mandatory timeouts)
+    - `paramiko` (SSH/SCP)
+    - `websocket-client` (TrueNAS SCALE JSON-RPC)
+    - `acme` (Python ACME v2 Protocol)
 
-## 3. Core Modules
-1.  **`CertManager`**: Orchestration engine.
-2.  **`ConfigManager`**: Dynamic configuration and encryption handling.
-3.  **`CertificateHandler`**: Abstract Interface for service adapters.
+## 3. Core Logic Flow (v1.2.0)
+1.  **Orchestration**: `CertManager` triggers a periodic pulse.
+2.  **Collection**: Sources (ACME, NPM) check for updated certificates upstream.
+3.  **Deduplication**: The system compares the Serial Number/SHA256 of the new certificate against the current one in `/certs`.
+4.  **Injection**: If different, the certificate and key are encrypted and saved to disk.
+5.  **Distribution**: The system iterates through all enabled services and executes the corresponding `Handler`.
 
-## 4. Security Considerations
--   **Encrypted Storage**: 
-    -   Credentials in `config.yaml` (Fernet AES-128).
-    -   Private Keys (`privkey.enc`) (AES-256).
--   **Least Privilege**: Container runs as `appuser` (UID 1000).
--   **Hardening**:
-    -   Debug artifacts removed.
-    -   Dependencies pinned.
-    -   Glassmorphism UI with Visual Security Indicators ("System Locked").
+## 4. Security Framework
+- **DoS Protection**: Mandatory timeouts on all external network IO.
+- **Credential Protection**: All service tokens/passwords are Fernet-encrypted.
+- **Privilege Separation**: App runs as `appuser:1000`. No root required for internal logic.
 
 ## 5. Deployment
-- **Docker First**: Deployment is managed purely via Docker images (`<DOCKER_HUB_USER>/cert-automator`).
-- **Persistence**: Usage of Docker Volumes for `/certs`, `/backups`, and `/config`.
-
-**Version**: 1.0  
-**Date**: 2026-01-02  
-**Author**: Systems Architecture Team
-
-## 1. High-Level Design
-The system follows a **Controller-Adapter** pattern encapsulated within a **Dockerized** Flask application.
-
-```mermaid
-graph TD
-    User[User / Admin] -->|HTTP/Web| WebUI[Web Dashboard]
-    WebUI -->|REST API| Flask[Flask Backend Controller]
-    Flask -->|Load| Config["Config Manager (YAML)"]
-    Flask -->|Instantiate| Factory[Handler Factory]
-    
-    subgraph Service Handlers
-    Factory -->|Create| H1[Proxmox Handler]
-    Factory -->|Create| H2[TrueNAS Handler]
-    Factory -->|Create| H3["SSH Handler (Generic)"]
-    Factory -->|Create| H4[PFX Converter]
-    end
-    
-    H1 -->|HTTPS/API| Ext1[Proxmox Node]
-    H2 -->|HTTPS/API| Ext2[TrueNAS Scale]
-    H3 -->|SCP/SSH| Ext3["Linux Hosts (Wazuh, Syncthing)"]
-    H4 -->|File IO| Local[Local Filesystem]
-```
-
-## 2. Technology Stack
-- **Runtime**: Python 3.11 (Slim Docker Image)
-- **Web Framework**: Flask (Lightweight, robust)
-- **Frontend**: HTML5, Vanilla JS, CSS3 (Glassmorphism design)
-- **Cryptography**: `openssl` (CLI) and `cryptography` (Python lib)
-- **Transport**: `requests` (HTTP/S), `paramiko` (SSH/SCP)
-
-## 3. Core Modules
-1.  **`CertManager`**: The orchestration engine. Validates inputs, loads config, and iterates through defined services.
-2.  **`ConfigManager`**: Parses `config.yaml`. Allows for dynamic service definitions without code changes.
-3.  **`CertificateHandler` (Interface)**: Abstract Base Class ensuring all handlers implement a standardized `renew(cert, key)` method.
-    - **Polymorphism**: The controller does not need to know *how* a service renews, only that it *can*.
-
-## 4. Security Considerations
--   **Encrypted Storage**: 
-    -   Credentials in `config.yaml` are encrypted at rest using Fernet symmetric encryption (AES-128).
-    -   **Private Keys**: Private keys (`privkey.pem`) are stored as **AES-256 encrypted blobs** (`privkey.enc`) on disk. They are transparently decrypted only in memory during renewal or inspection.
--   **Least Privilege**: The container runs as a non-root user (`appuser`, UID 1000) to minimize attack surface.
-- **Production Hardened**: Uses Gunicorn (WSGI) interface and strict input validation to prevent directory traversal attacks.
-- **SSH Keys**: Uses standard RSA keys for SSH access, avoiding password usage where possible.
-- **TLS Verification**: Defaults to strict checking, but permits `verify=False` for self-hosted intranet services.
-
-## 5. Deployment & Build Pipeline
-- **Dev/Prod Parity**: The `dev` folder is the source of truth.
-- **Packaging**: A custom Python build script (`build.py`) acts as the CI/CD engine:
-    1.  Increments Build ID.
-    2.  Snapshots code to `code_backup/` (Uncompressed for easy diffing).
-    3.  Sanitizes (removes temp files) and deploys to `prod/`.
-- **Docker**: Single `Dockerfile` supports both Dev and Prod, driven by volume mounts.
-
-## 6. Scalability
-- **Adding new services**: Requires writing a single Python class inheriting from `CertificateHandler` and adding one line to the factory dict. No UI changes needed (UI is data-driven).
+- **Containerization**: Single Docker image supporting `dev`, `prod`, and `dist` profiles via volume mapping.
+- **Persistence**: Relies on host-mounted volumes for `/app/certs`, `/app/backups`, and `/app/config.yaml`.

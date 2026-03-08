@@ -32,11 +32,25 @@ code_backup/
 
 # Release Specific
 prod/app/
+dist/LINKEDIN_DRAFT.md
+dist/assets/images/*.png
 
-# Internal Documentation
+# Internal Documentation & Drafts
 documentation/product_vision.md
 documentation/project_standards.md
 implementation_plan*.md
 REDDIT_*.md
+LINKEDIN_*.md
 GITHUB_RELEASE*.md
 documentation/ROADMAP.md
+
+# Local Debug, Logs & Backups (Recursive)
+*.bak
+*.broken*
+debug_*.py
+server_debug.log
+server_output*.log
+cert_automate.log
+input_certificates/
+version_info.json
+!build_scripts/version_info.json
