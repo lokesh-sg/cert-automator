@@ -1,3 +1,13 @@
+## [v1.2.1.20260810.04] - 2026-08-10
+
+### Security Fix (Critical)
+- **Recovery Key Never Logged**: Removed plaintext Emergency Recovery Key from log files.
+    - Previously, both the initial setup and legacy auto-migration wrote the full 32-character Emergency Recovery Key to `cert_automate.log` in plaintext.
+    - Fixed: Log messages now only confirm the event (`"Recovery key issued to user via UI"`). The key is never written to disk in any log or file.
+    - The key is only displayed once in the browser UI (setup screen / migration modal) and never stored on the server.
+
+---
+
 ## [v1.2.1.20260810.01] - 2026-08-10
 
 ### Added (Dual-Envelope Cryptography)
@@ -15,6 +25,7 @@
 - **PyPI Dependency Security Bump**:
     - Updated `urllib3` to `>=2.7.0` (Fixes CVE-2026-44432).
     - Updated `cryptography` to `>=47.0.0` (Fixes CVE-2026-69249).
+    - Upgraded `setuptools` to `>=75.0.0` in Dockerfile to purge base image CVE.
 - **Dockerfile Hardening**:
     - Updated Debian Bookworm package management to use `apt-get dist-upgrade -y` and installed `ca-certificates` for system-level CVE remediation.
 
