@@ -33,8 +33,9 @@ CertAutomator speaks the language of your favorite local and enterprise services
 ## What's New in v1.2.1?
 - **Zero-Loss Password Reset**: Introduced Dual-Envelope Cryptography allowing Master Passwords to be reset via `/api/recover` using a 32-character Emergency Recovery Key without losing vault configurations or SSL keys.
 - **Automatic Legacy Vault Migration**: Upgrades legacy single-password `auth.json` configurations to Dual-Envelope mode transparently on first login.
-- **Vulnerability Remediation**: Updated core PyPI packages (`urllib3>=2.7.0`, `cryptography>=47.0.0`) and base image dependencies to remediate published CVEs.
+- **Vulnerability Remediation**: Updated core PyPI packages (`urllib3>=2.7.0`, `cryptography>=47.0.0`, `setuptools>=75.0.0`) and base image dependencies to remediate published CVEs.
 - **Infinite Redirect Loop Fix**: Resolved `302 FOUND` redirection bug on `/login` and `/setup` endpoints.
+- **Security Patch**: Emergency Recovery Key is no longer written to log files in plaintext. It is shown exclusively in the browser UI (one-time) and never stored server-side.
 
 ---
 
