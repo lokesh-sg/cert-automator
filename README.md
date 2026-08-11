@@ -88,7 +88,7 @@ Visit `http://localhost:5050` to initialize your vault!
 
 ---
 
-## What's New in v1.1.3? (Project Aegis)
+## What's New in v1.1.3?
 - **"Cyber Vault" UI Overhaul**: A complete visual transformation featuring glassmorphism, high-contrast neon accents, and `JetBrains Mono` typography.
 - **CyberSelect™ Engine**: Custom dropdown system that bypasses OS limitations to ensure perfect font rendering on macOS and Linux.
 - **Stable Log Scrolling**: Intelligent anchor-based scroll locking for real-time log monitoring.
