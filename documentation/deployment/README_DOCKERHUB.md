@@ -91,4 +91,4 @@ Visit `http://[server-ip]:5050` to set your administrator credentials and initia
 ## Community & Support
 CertAutomator is built for the community. If you encounter issues or want to suggest a new handler, please check the logs or reach out on [GitHub](https://github.com/lokesh-sg/cert-automator)! 
 
-*Built with ❤️ for privacy and automation.*
+*Built for privacy and automation.*

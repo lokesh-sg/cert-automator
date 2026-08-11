@@ -2,7 +2,7 @@
 
 This folder contains everything needed to package and share CertAutomator as a portable Docker image.
 
-## 📦 How to Create the Shareable Package
+## How to Create the Shareable Package
 
 1.  Open your Terminal.
 2.  Navigate to this `dist/` folder.

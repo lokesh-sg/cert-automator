@@ -50,8 +50,8 @@ class CertManager:
     def is_locked(self):
         return self.config_mgr.is_locked
 
-    def unlock(self, password):
-        return self.config_mgr.unlock(password)
+    def unlock(self, password=None, mvk=None):
+        return self.config_mgr.unlock(password=password, mvk=mvk)
 
 
     def get_handler(self, service_data):
@@ -174,7 +174,8 @@ class CertManager:
             # Encrypt key content
             # Ensure key is string for JSON serialization inside encrypt_data
             key_str = key_content.decode('utf-8')
-            encrypted_bytes = self.config_mgr.crypto.encrypt_data({"key": key_str}, self.config_mgr.master_password)
+            secret = self.config_mgr.mvk or self.config_mgr.master_password
+            encrypted_bytes = self.config_mgr.crypto.encrypt_data({"key": key_str}, secret)
             
             with open(os.path.join(pack_dir, "privkey.enc"), "wb") as f:
                 f.write(encrypted_bytes)
@@ -248,7 +249,8 @@ class CertManager:
                         enc_data = f.read()
                     
                     # Decrypt
-                    decrypted_json = self.config_mgr.crypto.decrypt_data(enc_data, self.config_mgr.master_password)
+                    secret = self.config_mgr.mvk or self.config_mgr.master_password
+                    decrypted_json = self.config_mgr.crypto.decrypt_data(enc_data, secret)
                     raw_key = decrypted_json.get('key')
                     
                     # Write to Secure Temp File

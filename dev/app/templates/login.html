@@ -395,8 +395,9 @@
             <button type="submit" class="btn-primary" id="login-btn">Authenticate</button>
             <div id="error-msg" class="error-msg"></div>
 
-            <div style="margin-top: 1.5rem; text-align: center;">
-                <a href="#" id="reset-link" class="forgot-link">INITIATE SYSTEM RESET</a>
+            <div style="margin-top: 1.5rem; text-align: center; display: flex; flex-direction: column; gap: 0.5rem;">
+                <a href="#" id="recover-link" class="forgot-link" style="color: #38bdf8; font-weight: 500;">🔑 RECOVER PASSWORD WITH KEY</a>
+                <a href="#" id="reset-link" class="forgot-link" style="font-size: 0.75rem; opacity: 0.6;">Initiate System Factory Reset</a>
             </div>
         </form>
     </div>
@@ -406,28 +407,57 @@
         SECURE VAULT // {{ app_version }}
     </div>
 
-    <!-- Confirmation Modal -->
+    <!-- Password Recovery Modal (Zero Data Loss) -->
+    <div id="recover-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔑 Recover Master Password</h3>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Enter your 32-character <strong>Emergency Recovery Key</strong> to reset your Master Password. Your existing configurations, services, and private keys will remain <strong>100% intact</strong>!
+                </p>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display:block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.4rem; text-transform: uppercase;">Emergency Recovery Key</label>
+                    <input type="password" id="recover-key-input" placeholder="Paste 32-character key" style="width: 100%; padding: 0.75rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); border-radius: 6px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display:block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.4rem; text-transform: uppercase;">New Master Password</label>
+                    <input type="password" id="recover-new-password" placeholder="New Master Password" style="width: 100%; padding: 0.75rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); border-radius: 6px; color: var(--text-primary);">
+                </div>
+                <div class="form-group">
+                    <label style="display:block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.4rem; text-transform: uppercase;">Confirm New Password</label>
+                    <input type="password" id="recover-confirm-password" placeholder="Repeat New Password" style="width: 100%; padding: 0.75rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); border-radius: 6px; color: var(--text-primary);">
+                </div>
+                <div id="recover-error" class="error-msg" style="display:none; color: var(--error-color); font-size: 0.8rem; margin-top: 0.5rem; text-align: center;"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-recover" class="btn-secondary">Cancel</button>
+                <button id="confirm-recover" class="btn-primary">Update Password & Unlock</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Factory Reset Modal -->
     <div id="reset-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>⚠️ Factory Reset Warning</h3>
+                <h3>⚠️ Emergency Vault Factory Reset</h3>
             </div>
             <div class="modal-body">
-                <p>This action will <strong>PERMANENTLY DELETE</strong> your 'config.yaml' and 'auth.json' files.</p>
-                <p>ALL Services, certificates, and the Master Password will be lost.</p>
-                <p style="margin-top:1rem; color: var(--text-primary);">Use this ONLY if you have lost access and need
-                    to re-initialize the vault.</p>
+                <p>Perform a hard system reset and re-initialize setup.</p>
+                <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary);">Your current configuration will be safely archived to <code>config.reset_backup_*</code> on the host.</p>
                 <div style="margin-top: 1.5rem;">
                     <label
                         style="display:block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem; text-transform: uppercase;">Verification
-                        (Current Password or Token)</label>
-                    <input type="password" id="reset-verify"
+                        (Emergency Recovery Key or Master Password)</label>
+                    <input type="password" id="reset-verify" placeholder="Paste 32-character key or password"
                         style="width: 100%; padding: 0.85rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border-glass); border-radius: 6px; color: var(--text-primary); font-family: 'JetBrains Mono', monospace;">
                 </div>
             </div>
             <div class="modal-footer">
                 <button id="cancel-reset" class="btn-secondary">Cancel</button>
-                <button id="confirm-reset" class="btn-danger">CONFIRM RESET</button>
+                <button id="confirm-reset" class="btn-danger">CONFIRM FACTORY RESET</button>
             </div>
         </div>
     </div>
@@ -480,6 +510,9 @@
                     btn.style.borderColor = "var(--status-success)";
                     btn.style.color = "var(--status-success)";
                     btn.style.boxShadow = "0 0 20px rgba(0, 255, 157, 0.4)";
+                    if (data.migrated && data.recovery_key) {
+                        sessionStorage.setItem('migrated_recovery_key', data.recovery_key);
+                    }
                     setTimeout(() => window.location.href = '/', 500);
                 } else {
                     errorDiv.innerText = "ACCESS DENIED: " + data.message;
@@ -492,6 +525,58 @@
                 errorDiv.style.display = 'block';
                 btn.disabled = false;
                 btn.innerText = "Authenticate";
+            }
+        };
+
+        // Recover Logic
+        const recoverModal = document.getElementById('recover-modal');
+        const recoverErr = document.getElementById('recover-error');
+
+        document.getElementById('recover-link').onclick = (e) => {
+            e.preventDefault();
+            recoverModal.classList.remove('hidden');
+        };
+
+        document.getElementById('cancel-recover').onclick = () => {
+            recoverModal.classList.add('hidden');
+        };
+
+        document.getElementById('confirm-recover').onclick = async () => {
+            const recovery_key = document.getElementById('recover-key-input').value;
+            const new_password = document.getElementById('recover-new-password').value;
+            const confirm_password = document.getElementById('recover-confirm-password').value;
+
+            if (!recovery_key || !new_password) {
+                recoverErr.innerText = "All fields required";
+                recoverErr.style.display = 'block';
+                return;
+            }
+
+            if (new_password !== confirm_password) {
+                recoverErr.innerText = "Passwords do not match";
+                recoverErr.style.display = 'block';
+                return;
+            }
+
+            recoverErr.style.display = 'none';
+
+            try {
+                const res = await secureFetch('/api/recover', {
+                    method: 'POST',
+                    body: JSON.stringify({ recovery_key, new_password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast("PASSWORD RECOVERED. UNLOCKING...");
+                    recoverModal.classList.add('hidden');
+                    setTimeout(() => window.location.href = '/', 1000);
+                } else {
+                    recoverErr.innerText = data.message;
+                    recoverErr.style.display = 'block';
+                }
+            } catch (err) {
+                recoverErr.innerText = "Connection Error";
+                recoverErr.style.display = 'block';
             }
         };
 

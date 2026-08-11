@@ -7,6 +7,8 @@
 # 1. Activate Virtual Environment (if exists)
 if [ -f "dev/.venv_dev_stable/bin/activate" ]; then
     source dev/.venv_dev_stable/bin/activate
+elif [ -f ".venv_dev_stable/bin/activate" ]; then
+    source .venv_dev_stable/bin/activate
 elif [ -f "dev/venv/bin/activate" ]; then
     source dev/venv/bin/activate
 else

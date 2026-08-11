@@ -1,89 +1,98 @@
-# Production Recovery Guide - CertAutomator
+# Production & Recovery Guide - CertAutomator
 
-This guide explains how to recover your system in case of configuration corruption, lost passwords, or migration issues.
-
-## Data Locations
-In a standard Docker deployment, your persistent data is located in these mapped volumes on your host:
-
-- **Config**: `./app/config.yaml`
-- **Auth**: `./app/auth.json`
-- **Automatic Backups**: `./backup/config/`
-- **Certificates**: `./certs/`
+This guide explains data architecture, password recovery via **Dual-Envelope Cryptography**, system backups, and migration procedures.
 
 ---
 
-## Scenario 1: Configuration Corruption
-**Symptoms:** "Invalid Password" (when you are sure it's correct), "Decryption Failed", or the app appears completely empty.
+## Persistent Data Structure
 
-1.  **Stop the Container**:
-    ```bash
-    docker compose down
-    ```
-2.  **Verify the Corruption**: Check the file size of `./app/config.yaml`. If it is unusually small (e.g., < 200 bytes), it has likely been reset.
-3.  **Find a Healthy Backup**: List your backups to find the most recent one with a realistic file size:
-    ```bash
-    ls -lh ./backup/config/
-    ```
-4.  **Restore the Backup**:
-    ```bash
-    cp ./backup/config/config.YYYYMMDD-HHMMSS.yaml.bak ./app/config.yaml
-    ```
-5.  **Restart the App**:
-    ```bash
-    docker compose up -d
-    ```
+In a standard Docker deployment (or dev setup), persistent state is maintained across these mapped host paths:
+
+| Component | Path | Description |
+| :--- | :--- | :--- |
+| **Authentication** | `auth.json` | Stores username, `password_envelope`, and `recovery_envelope`. |
+| **Vault Config** | `config.yaml` | AES-256 encrypted service configurations, SSH targets, and API tokens. |
+| **Certificates** | `certs/` | Managed TLS certificates and encrypted private keys (`privkey.enc`). |
+| **Backups** | `backups/` | Rolling historical backups of `config.yaml` (up to 20 historical copies). |
 
 ---
 
-## Scenario 2: Forgotten Master Password
-**Symptoms:** You cannot log in and do not have a working backup of the configuration.
+## Dual-Envelope Cryptography Overview
 
-CertAutomator includes an **Emergency Reset Token** generated on every startup for your protection.
+CertAutomator uses **Dual-Envelope Encryption** to ensure zero data loss:
 
-1.  **Get the Token**: Check your Docker logs:
-    ```bash
-    docker compose logs | grep "EMERGENCY RESET TOKEN"
-    ```
-2.  **Reset via UI**:
-    - Go to the Login page.
-    - Click "Forgot Password" or "Reset System".
-    - Enter the 32-character token from your logs.
-3.  **Result**: The system will back up your current (inaccessible) config and return to the **Setup Screen**, allowing you to choose a new username and password.
+1. **Master Vault Key (`MVK`)**: A random 256-bit key generated at initial setup. All vault data (`config.yaml`) and private SSL keys (`privkey.enc`) are encrypted using `MVK`.
+2. **Password Envelope**: Encrypts `MVK` using a key derived from your Master Password (PBKDF2HMAC SHA-256 + Fernet AES-256).
+3. **Recovery Envelope**: Encrypts `MVK` using a key derived from your **32-character Emergency Recovery Key**.
+
+> [!NOTE]
+> Because `MVK` is wrapped separately by both your Master Password and Emergency Recovery Key, **recovering your vault with the Emergency Recovery Key resets your password without erasing any configurations, targets, or private keys**.
 
 ---
 
-## Scenario 3: Migrating from Dev to Prod
-To move your setup from a development machine to a production server:
+## Recovery Scenarios
 
-1.  **Stop the Dev App**.
-2.  **Transfer these files/folders** to your server:
-    - `dev/auth.json`
-    - `dev/config.yaml`
-    - `dev/certs/` (The whole folder)
-3.  **Place them** in your production mapped directories (e.g., `./app/` and `./certs/`).
-4.  **Fix Permissions**: Run `chown -R 1000:1000 ./app ./certs`.
-5.  **Ensure `FLASK_SECRET`** is set in your production `docker-compose.yml`.
+### Scenario 1: Reset Master Password Using Emergency Recovery Key (Zero Data Loss)
+If you forget your Master Password but have your 32-character Emergency Recovery Key:
 
----
-
-## Scenario 4: Updating CertAutomator
-Updating to a newer version is designed to be seamless.
-
-1.  **Backup**: Ensure you have a recent backup of `./app/config.yaml`.
-2.  **Pull & Restart**:
-    ```bash
-    docker compose down
-    ```
-    Replace your source files or pull the latest image, then:
-    ```bash
-    docker compose up -d
-    ```
-3.  **Verify**: Your settings and services should remain intact.
-    > [!TIP]
-    > For more detailed maintenance procedures, see the [Maintenance Guide](file:///Volumes/Downloads/cert-automate/documentation/MAINTENANCE.md).
+1. **Open Login Page**: Go to `http://<your-server>:5050/login`.
+2. **Open Recovery Modal**: Click **RECOVER PASSWORD WITH KEY**.
+3. **Enter Details**:
+   - Paste your **32-character Emergency Recovery Key**.
+   - Enter your **New Master Password** (and confirm it).
+4. **Submit**: Click **Update Password & Unlock**.
+5. **Outcome**: The system unwraps `MVK` using your recovery key, re-encrypts `MVK` into a new `password_envelope`, unlocks your vault, and logs you in. **All services, configurations, and SSL certificates remain 100% intact.**
 
 ---
 
-## Critical Warnings
-- **The Master Password is the Encryption Key**: If you lose your password and don't have the Emergency Token, your `config.yaml` can NEVER be decrypted.
-- **Backup your Backups**: Occasionally download the `./backup/` folder to a separate machine for ultimate safety.
+### Scenario 2: Automatic Upgrade for Legacy Vaults
+If you are upgrading from a legacy version of CertAutomator (single-password mode):
+
+1. **Log In**: Enter your existing username and Master Password on `/login`.
+2. **Automatic Migration**: The system transparently generates a 256-bit `MVK`, re-wraps your configuration, creates a 32-character Emergency Recovery Key, and updates `auth.json` to Dual-Envelope mode.
+3. **Save Key**: A one-time security alert modal pops up on your dashboard presenting your **Emergency Recovery Key**. Copy and store this key securely in your password manager.
+
+---
+
+### Scenario 3: Restoring Configuration from Historical Backup
+If your `config.yaml` becomes corrupted or accidentally modified:
+
+1. **Stop the App / Container**:
+   ```bash
+   docker compose down
+   ```
+2. **Find Most Recent Backup**:
+   ```bash
+   ls -lh backups/
+   ```
+3. **Restore Backup File**:
+   ```bash
+   cp backups/config.YYYYMMDD-HHMMSS.yaml.bak config.yaml
+   ```
+4. **Restart Container**:
+   ```bash
+   docker compose up -d
+   ```
+
+---
+
+### Scenario 4: Dev to Prod Migration
+To migrate your configuration and certificates to a new host or production environment:
+
+1. **Stop Source Instance**: Ensure all pending renewals finish cleanly.
+2. **Transfer Persistent Artifacts**:
+   - `auth.json`
+   - `config.yaml`
+   - `certs/` directory
+3. **Permissions**: Set proper file ownership on the target server (`chown -R 1000:1000 app certs`).
+4. **Launch Production Container**:
+   ```bash
+   docker compose up -d
+   ```
+
+---
+
+## Critical Security Rules
+
+- **Backup your Emergency Recovery Key**: Keep your 32-character Emergency Recovery Key in a safe password manager (e.g. Bitwarden, 1Password).
+- **Keep Master Password & Key Safe**: If both the Master Password AND Emergency Recovery Key are lost, encrypted vault data cannot be recovered without a historical backup.

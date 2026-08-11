@@ -132,6 +132,23 @@
             <button type="submit" class="btn-primary" id="setup-btn">Encrypt & Start</button>
             <div id="error-msg" class="error-msg"></div>
         </form>
+
+        <!-- Post Setup Recovery Key View -->
+        <div id="recovery-box" style="display: none; margin-top: 1rem;">
+            <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem;">
+                <h3 style="color: #fca5a5; font-size: 0.95rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    🔑 Emergency Recovery Key
+                </h3>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 0.75rem;">
+                    Please <strong>save this key in a secure location</strong> (e.g. your password manager). If you ever forget your master password, this key allows you to initiate a system reset.
+                </p>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <input type="text" id="token-display" readonly style="flex: 1; padding: 0.6rem; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); border-radius: 0.4rem; color: #38bdf8; font-family: monospace; font-size: 0.85rem; text-align: center;">
+                    <button type="button" id="copy-token-btn" style="padding: 0.6rem 0.8rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 0.4rem; color: white; cursor: pointer; font-size: 0.8rem;">Copy</button>
+                </div>
+            </div>
+            <button type="button" class="btn-primary" id="finish-btn">Proceed to Vault Dashboard</button>
+        </div>
     </div>
     <div style="margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.8rem; text-align: center; opacity: 0.5;">
         {{ app_version }}
@@ -145,6 +162,19 @@
             if (options.body && !(options.body instanceof FormData)) { headers['Content-Type'] = 'application/json'; }
             return fetch(url, { ...options, headers });
         }
+
+        let emergencyToken = '';
+
+        document.getElementById('copy-token-btn').onclick = () => {
+            navigator.clipboard.writeText(emergencyToken);
+            const copyBtn = document.getElementById('copy-token-btn');
+            copyBtn.innerText = "Copied!";
+            setTimeout(() => { copyBtn.innerText = "Copy"; }, 2000);
+        };
+
+        document.getElementById('finish-btn').onclick = () => {
+            window.location.href = '/';
+        };
 
         document.getElementById('setup-form').onsubmit = async (e) => {
             e.preventDefault();
@@ -173,7 +203,11 @@
                 const data = await res.json();
 
                 if (data.success) {
-                    window.location.href = '/';
+                    emergencyToken = data.reset_token || '';
+                    document.getElementById('setup-form').style.display = 'none';
+                    document.querySelector('.info-box').style.display = 'none';
+                    document.getElementById('token-display').value = emergencyToken;
+                    document.getElementById('recovery-box').style.display = 'block';
                 } else {
                     errorDiv.innerText = data.message;
                     errorDiv.style.display = 'block';

@@ -97,26 +97,6 @@ def is_auth_configured():
         return False
 
 # Initialize Manager (Starts LOCKED unless env var provided)
-master_password = os.getenv('MASTER_PASSWORD') # Initialize Cert Manager
-logger = logging.getLogger(__name__)
-
-
-
-app.cert_manager = CertManager(CONFIG_PATH, CERT_DIR, master_password=master_password, backup_dir=BACKUP_DIR)
-# Restore backward compatibility for existing code references
-manager = app.cert_manager
-
-app.validator = CertValidator()
-validator = app.validator
-
-# 5. Runtime Security Tokens
-import secrets
-RESET_TOKEN = secrets.token_hex(16)
-logging.info(f"--- SECURITY NOTICE ---")
-logging.info(f"EMERGENCY RESET TOKEN: {RESET_TOKEN}")
-logging.info(f"Use this token via API to reset system if password is forgotten.")
-logging.info(f"-----------------------")
-
 # Configure Logger to file
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 file_handler = RotatingFileHandler(LOG_FILE, maxBytes=10*1024*1024, backupCount=5)
@@ -124,6 +104,14 @@ file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(mes
 root_logger = logging.getLogger()
 root_logger.addHandler(file_handler)
 root_logger.setLevel(logging.INFO)
+
+master_password = os.getenv('MASTER_PASSWORD') # Initialize Cert Manager
+logger = logging.getLogger(__name__)
+
+app.cert_manager = CertManager(CONFIG_PATH, CERT_DIR, master_password=master_password, backup_dir=BACKUP_DIR)
+manager = app.cert_manager
+app.validator = CertValidator()
+validator = app.validator
 
 # Startup Logs for Path Debugging
 logger.info(f"--- PATH CONFIGURATION ---")
@@ -133,41 +121,100 @@ logger.info(f"LOG_FILE:   {LOG_FILE}")
 logger.info(f"CONFIG:     {CONFIG_PATH}")
 logger.info(f"--------------------------")
 
+# Helper to verify auth / envelopes
+def unlock_with_secret(provided_password: str = None, provided_recovery_key: str = None):
+    if not is_auth_configured():
+        return False, "System not set up", False, None
+    try:
+        with open(AUTH_FILE, 'r') as f:
+            auth_data = json.load(f)
+            
+        mvk = None
+        crypto = manager.config_mgr.crypto
+        migrated = False
+        new_recovery_key = None
+        
+        if provided_password and "password_envelope" in auth_data:
+            try:
+                mvk = crypto.decrypt_envelope(auth_data["password_envelope"], provided_password)
+            except Exception:
+                return False, "Invalid Password", False, None
+        elif provided_recovery_key and "recovery_envelope" in auth_data:
+            try:
+                mvk = crypto.decrypt_envelope(auth_data["recovery_envelope"], provided_recovery_key.strip())
+            except Exception:
+                return False, "Invalid Recovery Key", False, None
+        elif provided_password and not auth_data.get("password_envelope"):
+            # Legacy direct password migration
+            if manager.unlock(password=provided_password):
+                # Perform Auto-Migration to Dual Envelope
+                mvk = crypto.generate_mvk()
+                new_recovery_key = crypto.generate_recovery_key()
+                
+                auth_data["password_envelope"] = crypto.encrypt_envelope(mvk, provided_password)
+                auth_data["recovery_envelope"] = crypto.encrypt_envelope(mvk, new_recovery_key)
+                
+                with open(AUTH_FILE, 'w') as f:
+                    json.dump(auth_data, f, indent=2)
+                    
+                # Re-encrypt config with MVK
+                manager.config_mgr.mvk = mvk
+                manager.config_mgr.master_password = provided_password
+                manager.config_mgr.save_config()
+                migrated = True
+                
+                logger.info("--- MIGRATION NOTICE ---")
+                logger.info(f"Auto-migrated legacy vault to Dual-Envelope. RECOVERY KEY: {new_recovery_key}")
+                logger.info("------------------------")
+                return True, auth_data.get("username"), migrated, new_recovery_key
+            return False, "Invalid Password", False, None
+
+        if mvk:
+            if manager.unlock(mvk=mvk):
+                manager.config_mgr.master_password = provided_password
+                return True, auth_data.get("username"), False, None
+                
+        return False, "Decryption Failed", False, None
+    except Exception as e:
+        return False, f"Auth Error: {str(e)}", False, None
+
 # --- Middleware ---
 @app.before_request
 def check_auth():
     # Only allow static assets and core login/setup flow without auth
-    WHITELIST = ['login', 'setup', 'do_login', 'do_setup', 'health_check', 'download_temp_file']
-    if request.path.startswith('/static') or request.endpoint in WHITELIST:
-        return
+    WHITELIST = ['login', 'setup', 'do_setup', 'do_login', 'do_recover', 'health_check', 'download_temp_file']
+    PATH_WHITELIST = ['/login', '/setup', '/setup', '/login']
     
-    # If auth doesn't exist (or is invalid/empty) -> Setup needed
-    if not is_auth_configured():
-        return redirect('/setup')
+    if request.path in PATH_WHITELIST or request.endpoint in WHITELIST or request.path.startswith('/static/'):
+        return
 
-    # If Locked or Not Logged In
-    if manager.is_locked or not session.get('logged_in'):
-        if request.path.startswith('/api'):
-             return jsonify({"success": False, "message": "Unauthorized / Locked"}), 401
+    if not session.get('logged_in'):
+        if request.is_json:
+            return jsonify({"error": "Unauthorized"}), 401
         return redirect('/login')
-
-# --- Routes ---
 
 @app.route('/')
 def index():
+    if not is_auth_configured():
+        return redirect('/setup')
+        
+    if manager.is_locked:
+         return redirect('/login')
+         
     return render_template('index.html', app_version=get_version())
 
-@app.route('/setup', methods=['GET'], endpoint='setup')
+@app.route('/setup')
 def setup_page():
     if is_auth_configured():
-         return redirect('/login')
+         return redirect('/')
     return render_template('setup.html', app_version=get_version())
 
-@app.route('/login', methods=['GET'], endpoint='login')
+@app.route('/login')
 def login_page():
-     # If unlocked and logged in, go home
+     if not is_auth_configured():
+         return redirect('/setup')
      if not manager.is_locked and session.get('logged_in'):
-         return redirect('/')
+          return redirect('/')
      return render_template('login.html', app_version=get_version())
 
 @app.route('/setup', methods=['POST'], endpoint='do_setup')
@@ -179,20 +226,33 @@ def do_setup():
     if not username or not password:
         return jsonify({"success": False, "message": "Missing fields"}), 400
         
-    # 1. Save Username
+    crypto = manager.config_mgr.crypto
+    mvk = crypto.generate_mvk()
+    recovery_key = crypto.generate_recovery_key()
+    
+    password_envelope = crypto.encrypt_envelope(mvk, password)
+    recovery_envelope = crypto.encrypt_envelope(mvk, recovery_key)
+    
     with open(AUTH_FILE, 'w') as f:
-        json.dump({"username": username}, f)
+        json.dump({
+            "username": username,
+            "password_envelope": password_envelope,
+            "recovery_envelope": recovery_envelope
+        }, f, indent=2)
         
-    # 2. Initialize Config (Encrypts it)
-    if manager.unlock(password):
-        # Save to ensure it exists and is encrypted
+    logger.info("--- SECURITY NOTICE ---")
+    logger.info(f"EMERGENCY RECOVERY KEY: {recovery_key}")
+    logger.info("-----------------------")
+
+    if manager.unlock(mvk=mvk):
+        manager.config_mgr.master_password = password
         manager.config_mgr.save_config()
         session.permanent = True
         session['logged_in'] = True
         session['username'] = username
-        return jsonify({"success": True})
+        return jsonify({"success": True, "reset_token": recovery_key})
     else:
-        return jsonify({"success": False, "message": "Failed to initialize config lock."}), 500
+        return jsonify({"success": False, "message": "Failed to initialize vault."}), 500
 
 @app.route('/login', methods=['POST'], endpoint='do_login')
 def do_login():
@@ -200,7 +260,6 @@ def do_login():
     username = data.get('username')
     password = data.get('password')
     
-    # 1. Verify Username
     if not is_auth_configured():
         return jsonify({"success": False, "message": "System not set up. Please go to /setup"}), 400
         
@@ -210,14 +269,56 @@ def do_login():
     if stored_auth.get('username') != username:
          return jsonify({"success": False, "message": "Invalid Username"}), 401
 
-    # 2. Attempt Unlock
-    if manager.unlock(password):
-        session.permanent = True # Enforce timeout
+    success, msg, migrated, recovery_key = unlock_with_secret(provided_password=password)
+    if success:
+        session.permanent = True
         session['logged_in'] = True
         session['username'] = username
-        return jsonify({"success": True})
+        response_payload = {"success": True}
+        if migrated:
+            response_payload["migrated"] = True
+            response_payload["recovery_key"] = recovery_key
+        return jsonify(response_payload)
     else:
-        return jsonify({"success": False, "message": "Invalid Password (Decryption Failed)"}), 401
+        return jsonify({"success": False, "message": f"Login Failed ({msg})"}), 401
+
+@app.route('/api/recover', methods=['POST'], endpoint='do_recover')
+def recover_password():
+    data = request.json
+    recovery_key = data.get('recovery_key')
+    new_password = data.get('new_password')
+    
+    if not recovery_key or not new_password:
+        return jsonify({"success": False, "message": "Recovery Key and New Password required"}), 400
+
+    if not is_auth_configured():
+        return jsonify({"success": False, "message": "System not set up"}), 400
+
+    with open(AUTH_FILE, 'r') as f:
+        auth_data = json.load(f)
+
+    crypto = manager.config_mgr.crypto
+    try:
+        mvk = crypto.decrypt_envelope(auth_data["recovery_envelope"], recovery_key.strip())
+    except Exception:
+        return jsonify({"success": False, "message": "Invalid Emergency Recovery Key"}), 401
+
+    # Re-wrap MVK with new password
+    new_password_envelope = crypto.encrypt_envelope(mvk, new_password)
+    auth_data["password_envelope"] = new_password_envelope
+    
+    with open(AUTH_FILE, 'w') as f:
+        json.dump(auth_data, f, indent=2)
+
+    # Unlock manager with MVK (All existing configs and keys remain 100% readable!)
+    if manager.unlock(mvk=mvk):
+        manager.config_mgr.master_password = new_password
+        session.permanent = True
+        session['logged_in'] = True
+        session['username'] = auth_data.get('username', 'admin')
+        return jsonify({"success": True, "message": "Master Password updated. Vault unlocked!"})
+    else:
+        return jsonify({"success": False, "message": "Vault unlock failed post-recovery"}), 500
         
 @app.route('/api/reset', methods=['POST'])
 def reset_system():
@@ -949,18 +1050,6 @@ def start_scheduler():
     t = threading.Thread(target=run_schedule, daemon=True)
     t.start()
 
-# --- Scheduler Startup ---
-# Ensure scheduler starts whether running via `python -m app.server` OR `gunicorn`
-# In Gunicorn, __name__ is 'app.server', so __name__ == '__main__' is False.
-if os.environ.get('WERKZEUG_RUN_MAIN') == 'true' or not app.debug:
-    # Use a simple lock or flag to prevent double execution if multiple imports happen (rare here)
-    if not getattr(app, '_scheduler_started', False):
-        start_scheduler()
-        app._scheduler_started = True
-
 if __name__ == '__main__':
-    # Initialize Registry
     app.temp_registry = {}
-    
-    # Port 5050 to avoid MacOS AirPlay conflict on 5000
     app.run(host='0.0.0.0', port=5050, debug=False)

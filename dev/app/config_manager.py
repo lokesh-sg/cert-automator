@@ -5,28 +5,30 @@ import os
 from .crypto_utils import CryptoManager
 
 class ConfigManager:
-    def __init__(self, config_path: str, master_password: str = None, backup_dir: str = None):
+    def __init__(self, config_path: str, master_password: str = None, backup_dir: str = None, mvk: str = None):
         self.config_path = config_path
         self.master_password = master_password
+        self.mvk = mvk
         self.backup_dir = backup_dir
         self.config = {}
         self.logger = logging.getLogger("CertAutomator.ConfigManager")
         self.crypto = CryptoManager(self.logger)
         self.is_locked = True
         
-        # Try to load immediately if we have a password (legacy CLI / Unit Test support)
-        # OR if the file doesn't exist (new system), we are effectively "unlocked" but empty.
-        if self.master_password or not os.path.exists(self.config_path):
+        # Try to load immediately if we have a key/password or if new config
+        if self.mvk or self.master_password or not os.path.exists(self.config_path):
              self.load_config()
 
-    def unlock(self, password: str) -> bool:
-        """Attempts to unlock the configuration with the given password."""
-        self.master_password = password
+    def unlock(self, password: str = None, mvk: str = None) -> bool:
+        """Attempts to unlock the configuration with password or MVK."""
+        if mvk:
+            self.mvk = mvk
+        if password:
+            self.master_password = password
         try:
             self.load_config()
             return not self.is_locked
         except Exception:
-            self.master_password = None # Reset on failure
             self.is_locked = True
             return False
 
@@ -42,15 +44,16 @@ class ConfigManager:
         try:
             # Check if encrypted
             if self.crypto.is_encrypted(self.config_path):
-                if not self.master_password:
+                secret = self.mvk or self.master_password
+                if not secret:
                     self.is_locked = True
-                    self.logger.info("Config is encrypted and no password provided. System LOCKED.")
+                    self.logger.info("Config is encrypted and no key/password provided. System LOCKED.")
                     return {} # Return empty, system is locked
                 
                 with open(self.config_path, 'rb') as f:
                     content = f.read()
                 
-                self.config = self.crypto.decrypt_data(content, self.master_password)
+                self.config = self.crypto.decrypt_data(content, secret)
                 self.is_locked = False
                 self.logger.info("Encrypted configuration loaded successfully.")
                 return self.config
@@ -63,7 +66,8 @@ class ConfigManager:
                 self.is_locked = False
                 
                 # Auto-Migrate to Encrypted
-                if self.master_password:
+                secret = self.mvk or self.master_password
+                if secret:
                     self.logger.info("Migrating plain-text config to ENCRYPTED format...")
                     self.save_config() 
                     
@@ -197,15 +201,16 @@ class ConfigManager:
                         self.logger.error(f"Failed to create backup: {e}")
 
                 # Encrypted Save
-                encrypted_bytes = self.crypto.encrypt_data(self.config, self.master_password)
-                with open(self.config_path, 'wb') as f:
-                    f.write(encrypted_bytes)
-                self.logger.info("Configuration saved (Encrypted).")
-            else:
-                # Fallback Plain Save (Should ideally verify this flow doesn't happen in prod)
-                self.logger.warning("Saving configuration in PLAIN TEXT (No Master Password set).")
-                with open(self.config_path, 'w') as f:
-                    yaml.dump(self.config, f, sort_keys=False, default_flow_style=False)
+                secret = self.mvk or self.master_password
+                if secret:
+                    encrypted_bytes = self.crypto.encrypt_data(self.config, secret)
+                    with open(self.config_path, 'wb') as f:
+                        f.write(encrypted_bytes)
+                    self.logger.info("Configuration saved (Encrypted).")
+                else:
+                    self.logger.warning("Saving configuration in PLAIN TEXT (No secret key set).")
+                    with open(self.config_path, 'w') as f:
+                        yaml.dump(self.config, f, sort_keys=False, default_flow_style=False)
         except Exception as e:
             self.logger.error(f"Error saving config: {e}")
             raise

@@ -1,10 +1,11 @@
-FROM python:3.13-slim-bookworm
+dFROM python:3.13-slim-bookworm
 
 WORKDIR /app
 
 # Install system dependencies & security patches
-RUN apt-get update && apt-get upgrade -y && \
-    apt-get install -y openssl curl && \
+RUN apt-get update && apt-get dist-upgrade -y && \
+    apt-get install -y --no-install-recommends openssl curl ca-certificates && \
+    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 # Install python dependencies
