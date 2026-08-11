@@ -12,9 +12,9 @@ CertAutomator is a powerful, secure, and user-friendly web application designed 
 ## Key Features
 
 ### Secure by Design
-- **Encrypted Local Vault**: All credentials, configs, and **Private Keys** (`privkey.enc`) are AES-encrypted on disk.
-- **Hardened Sessions**: Built-in CSRF protection, HttpOnly cookies, and strict session management.
-- **Emergency Access**: Every deployment generates a unique one-time Emergency Reset Token in the logs.
+- **Dual-Envelope Encryption**: Credentials, configs, and **Private Keys** (`privkey.enc`) are encrypted on disk with a 256-bit Master Vault Key (`MVK`), wrapped in dual password and recovery envelopes.
+- **Zero-Data-Loss Recovery**: Reset forgotten Master Passwords using your 32-character Emergency Recovery Key without wiping service targets, configs, or SSL private keys.
+- **Hardened Sessions**: Built-in CSRF protection, HttpOnly cookies, strict session cookie hardening, and non-root execution (UID 1000).
 
 ### Intelligent Automation
 - **Zero-Touch Startup**: Automatically verifies the health of all local and remote certificates immediately upon launch.
@@ -30,15 +30,18 @@ CertAutomator speaks the language of your favorite local and enterprise services
 
 ---
 
-## What's New in v1.2.0? (Project Chronos)
-- **Native ACME Integration**: Automated certificate issuance and renewal via Let's Encrypt/ZeroSSL using DNS-01 (Cloudflare).
-- **Nginx Proxy Manager Sources**: Intelligent "Pull" integration with zero-restart logic and serial-number verification.
-- **Enterprise Security Hardening**: Forced network timeouts across all handlers to prevent DoS, and infrastructure pivot to Python 3.13.
-- **Improved Reliability**: Repaired cryptography dependencies and standardized PEM-encoded ACME CSRs.
+## What's New in v1.2.1?
+- **Zero-Loss Password Reset**: Introduced Dual-Envelope Cryptography allowing Master Passwords to be reset via `/api/recover` using a 32-character Emergency Recovery Key without losing vault configurations or SSL keys.
+- **Automatic Legacy Vault Migration**: Upgrades legacy single-password `auth.json` configurations to Dual-Envelope mode transparently on first login.
+- **Vulnerability Remediation**: Updated core PyPI packages (`urllib3>=2.7.0`, `cryptography>=47.0.0`) and base image dependencies to remediate published CVEs.
+- **Infinite Redirect Loop Fix**: Resolved `302 FOUND` redirection bug on `/login` and `/setup` endpoints.
 
 ---
 
-## What's New in v1.1.3? (Project Aegis)
+## What's New in v1.2.0?
+- **Native ACME Integration**: Automated certificate issuance and renewal via Let's Encrypt/ZeroSSL using DNS-01 (Cloudflare).
+- **Nginx Proxy Manager Sources**: Intelligent "Pull" integration with zero-restart logic and serial-number verification.
+- **Enterprise Security Hardening**: Forced network timeouts across all handlers to prevent DoS, and infrastructure pivot to Python 3.13.
 
 ---
 

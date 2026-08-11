@@ -1,4 +1,4 @@
-dFROM python:3.13-slim-bookworm
+FROM python:3.13-slim-bookworm
 
 WORKDIR /app
 
@@ -8,10 +8,11 @@ RUN apt-get update && apt-get dist-upgrade -y && \
     apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
-# Install python dependencies
+# Install python dependencies & upgrade build tools
 COPY app/requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade "pip>=24.3" "setuptools>=75.0.0" "wheel" && \
+    pip install --no-cache-dir -r requirements.txt && \
+    rm -rf /usr/local/lib/python3.13/site-packages/setuptools-70.3.0*.dist-info /usr/local/lib/python3.13/site-packages/setuptools-70.3.0*
 
 # Copy application code
 COPY app/ app/

@@ -30,7 +30,14 @@ CertAutomator speaks the language of your favorite local and enterprise services
 
 ---
 
-## 🚀 What's New in v1.2.0? (Project Chronos)
+## What's New in v1.2.1?
+- **Zero-Loss Password Reset**: Introduced Dual-Envelope Cryptography allowing Master Passwords to be reset via `/api/recover` using a 32-character Emergency Recovery Key without losing vault configurations or SSL keys.
+- **Automatic Legacy Vault Migration**: Upgrades legacy single-password `auth.json` configurations to Dual-Envelope mode transparently on first login.
+- **Vulnerability Remediation**: Updated core PyPI packages (`urllib3>=2.7.0`, `cryptography>=47.0.0`) and base image dependencies to remediate published CVEs.
+
+---
+
+## What's New in v1.2.0?
 - **Native ACME Integration**: Automated issuance and renewal via Let's Encrypt using DNS-01 (Cloudflare).
 - **Nginx Proxy Manager Sources**: Automated "Pull" integration with pulse-check logic to prevent redundant restarts.
 - **Security Hardening**: Global API timeouts and base image upgrade to Python 3.13.

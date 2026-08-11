@@ -1,7 +1,7 @@
-# CertAutomator - v1.2.0.20260308.01
+# CertAutomator - v1.2.1
 > Enterprise-grade Certificate Management Solution
 
-**The Centralized "Vault" for Automated SSL Certificate Management.**
+**The Centralized Vault for Automated SSL Certificate Management.**
 
 ![Main Dashboard](assets/images/CertAutomator%20Dashboard.png)
 
@@ -16,10 +16,9 @@
 ## Key Features
 
 ### Secure by Design
-- **Encryption-at-Rest**: Private keys are AES-256 encrypted (`privkey.enc`) using a master password.
-- **Strict Permissions**: Fallback to 0600 permissions if encryption is disabled.
-- **Hardened**: Runs as non-root (UID 1000), includes CSRF protection, and uses HttpOnly cookies.
-- **Emergency Access**: Generates a one-time-use emergency token for lockout recovery.
+- **Dual-Envelope Encryption**: Private keys and vault configurations are encrypted with a 256-bit Master Vault Key (`MVK`), wrapped in dual password and recovery envelopes.
+- **Zero-Data-Loss Recovery**: Reset forgotten Master Passwords using your 32-character Emergency Recovery Key without wiping target service configs or SSL private keys.
+- **Hardened Execution**: Runs as non-root (UID 1000), includes global CSRF protection, HttpOnly cookies, and strict session hardening.
 
 ### Automation & Intelligence
 - **Zero-Touch Startup**: Verifies health of all services immediately on launch.

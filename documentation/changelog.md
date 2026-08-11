@@ -1,3 +1,27 @@
+## [v1.2.1.20260810.01] - 2026-08-10
+
+### Added (Dual-Envelope Cryptography)
+- **Zero-Loss Password Recovery**: Replaced legacy single-password encryption with Dual-Envelope Cryptography.
+    - Master Vault Key (`MVK` - 256-bit random key) encrypts `config.yaml` and SSL private keys (`privkey.enc`).
+    - `MVK` is wrapped separately in a `password_envelope` (Master Password) and a `recovery_envelope` (32-character Emergency Recovery Key).
+    - Added `/api/recover` endpoint allowing zero-loss Master Password resets using the Emergency Recovery Key without wiping service configurations or SSL keys.
+- **Emergency Recovery Key Display**:
+    - Initial setup screen now generates and displays a 32-character Emergency Recovery Key with a one-click copy button.
+- **Automatic Legacy Migration**:
+    - Legacy single-password `auth.json` configurations automatically migrate to Dual-Envelope mode on first login.
+    - Dashboard pops up a one-time security alert modal presenting the newly generated Emergency Recovery Key.
+
+### Security & Dependency Hardening
+- **PyPI Dependency Security Bump**:
+    - Updated `urllib3` to `>=2.7.0` (Fixes CVE-2026-44432).
+    - Updated `cryptography` to `>=47.0.0` (Fixes CVE-2026-69249).
+- **Dockerfile Hardening**:
+    - Updated Debian Bookworm package management to use `apt-get dist-upgrade -y` and installed `ca-certificates` for system-level CVE remediation.
+
+### Fixed
+- **Authentication Middleware**: Resolved a `302 FOUND` infinite redirect loop on `/login` and `/setup` routes.
+- **CertManager**: Added support for passing `mvk` directly to `CertManager.unlock()` and `ConfigManager.unlock()`.
+
 ## [v1.2.0.20260308.02] - 2026-03-08
 ### Added
 - **Bulk Service Pack Assignment**: New "Assign" button in the Certificate Manager allows bulk-assigning multiple services to a certificate pack in a single operation.

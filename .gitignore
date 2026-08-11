@@ -38,6 +38,7 @@ dist/assets/images/*.png
 # Internal Documentation & Drafts
 documentation/product_vision.md
 documentation/project_standards.md
+documentation/INTERNAL_CHANGELOG*.md
 implementation_plan*.md
 REDDIT_*.md
 LINKEDIN_*.md
