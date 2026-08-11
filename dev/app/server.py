@@ -164,7 +164,7 @@ def unlock_with_secret(provided_password: str = None, provided_recovery_key: str
                 migrated = True
                 
                 logger.info("--- MIGRATION NOTICE ---")
-                logger.info(f"Auto-migrated legacy vault to Dual-Envelope. RECOVERY KEY: {new_recovery_key}")
+                logger.info(f"Auto-migrated legacy vault to Dual-Envelope. Recovery key issued to user via dashboard UI (not logged for security).")
                 logger.info("------------------------")
                 return True, auth_data.get("username"), migrated, new_recovery_key
             return False, "Invalid Password", False, None
@@ -241,7 +241,7 @@ def do_setup():
         }, f, indent=2)
         
     logger.info("--- SECURITY NOTICE ---")
-    logger.info(f"EMERGENCY RECOVERY KEY: {recovery_key}")
+    logger.info(f"Emergency Recovery Key issued to user via setup UI (not logged for security). Store it safely.")
     logger.info("-----------------------")
 
     if manager.unlock(mvk=mvk):
