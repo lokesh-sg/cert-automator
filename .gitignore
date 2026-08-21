@@ -34,6 +34,7 @@ code_backup/
 prod/app/
 
 # Internal Documentation & Drafts
+.agents/
 documentation/product_vision.md
 documentation/project_standards.md
 documentation/INTERNAL_CHANGELOG*.md
