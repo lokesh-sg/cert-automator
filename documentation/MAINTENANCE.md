@@ -67,8 +67,8 @@ Future updates to CertAutomator may introduce new features or configuration sett
 If you need to deploy CertAutomator on a new server or share it with others:
 
 1.  **Generate the Package**:
-    - Go to the `dist/` folder in the source code.
-    - Run `./package_for_sharing.sh`. This creates `cert-automator-v1.tar`.
+    - Go to the root / `build_scripts/` folder in the source code.
+    - Run `./build_scripts/package_for_sharing.sh`. This creates portable `.tar` archives.
 2.  **Transport**: Transfer `cert-automator-v1.tar` and `docker-compose.yml` to the target server.
 3.  **Import & Run**:
     - On the new server, run: `docker load < cert-automator-v1.tar`

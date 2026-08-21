@@ -32,8 +32,6 @@ code_backup/
 
 # Release Specific
 prod/app/
-dist/LINKEDIN_DRAFT.md
-dist/assets/images/*.png
 
 # Internal Documentation & Drafts
 documentation/product_vision.md

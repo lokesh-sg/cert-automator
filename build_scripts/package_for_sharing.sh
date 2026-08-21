@@ -1,8 +1,12 @@
 #!/bin/bash
-# Maintenance Update: 2026-01-09
+# Maintenance Update: 2026-08-21
 
 # CertAutomator - Distribution & Export Script
 # This script builds the production Docker image and exports it to a portable .tar file.
+
+# Ensure we run from repository root
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$REPO_ROOT"
 
 # Colors for output
 GREEN='\033[0;32m'
