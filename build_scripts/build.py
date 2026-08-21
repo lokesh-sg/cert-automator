@@ -10,7 +10,7 @@ import datetime
 VERSION_FILE = "build_scripts/version_info.json"
 SOURCE_DIR = "dev/app"
 PROD_DIR = "prod/app"
-VERSIONS_DIR = "code_backup" # Renamed from versions as per user request
+CODE_BACKUP_DIR = "code_backup"
 
 def load_version():
     if os.path.exists(VERSION_FILE):
@@ -60,8 +60,8 @@ def main():
     print(f"Build version: {ver_str}")
 
     # 2. Archive to /code_backup (Unzipped)
-    os.makedirs(VERSIONS_DIR, exist_ok=True)
-    backup_path = copy_source(new_version, SOURCE_DIR, VERSIONS_DIR)
+    os.makedirs(CODE_BACKUP_DIR, exist_ok=True)
+    backup_path = copy_source(new_version, SOURCE_DIR, CODE_BACKUP_DIR)
     print(f"Backed up code to: {backup_path}")
 
     # 3. Deploy to /prod
