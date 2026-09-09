@@ -1,14 +1,4 @@
-## [v1.2.1.20260810.04] - 2026-08-10
-
-### Security Fix (Critical)
-- **Recovery Key Never Logged**: Removed plaintext Emergency Recovery Key from log files.
-    - Previously, both the initial setup and legacy auto-migration wrote the full 32-character Emergency Recovery Key to `cert_automate.log` in plaintext.
-    - Fixed: Log messages now only confirm the event (`"Recovery key issued to user via UI"`). The key is never written to disk in any log or file.
-    - The key is only displayed once in the browser UI (setup screen / migration modal) and never stored on the server.
-
----
-
-## [v1.2.1.20260810.01] - 2026-08-10
+## [v1.2.1] - 2026-09-09 (Latest)
 
 ### Added (Dual-Envelope Cryptography)
 - **Zero-Loss Password Recovery**: Replaced legacy single-password encryption with Dual-Envelope Cryptography.
@@ -21,7 +11,22 @@
     - Legacy single-password `auth.json` configurations automatically migrate to Dual-Envelope mode on first login.
     - Dashboard pops up a one-time security alert modal presenting the newly generated Emergency Recovery Key.
 
+### Fixed (Cryptographic Vault & Service Renewal)
+- **Dual-Credential Private Key Decryption & Self-Healing**:
+    - Resolved `cryptography.fernet.InvalidToken` (`Signature did not match digest`) error occurring during service renewals for certificate packs created prior to Dual-Envelope migration.
+    - Implemented multi-candidate key decryption: attempts decryption using Master Vault Key (`MVK`) first, then automatically falls back to `master_password`.
+    - Implemented transparent on-the-fly self-healing: keys decrypted via legacy password fallback are immediately re-encrypted with active `MVK` and persisted to `privkey.enc`.
+- **Automatic Vault Migration on Unlock**:
+    - Added `migrate_all_cert_packs_to_mvk()` hook triggered upon vault unlock/login to seamlessly scan and migrate any legacy password-encrypted or plain-text private keys to MVK encryption.
+- **Unified Key Inspection Endpoint**:
+    - Updated `/api/certs/<pack_name>/details` to use `manager.get_private_key_data(pack_name)` instead of hardcoded `master_password` decryption, fixing inspection of MVK-encrypted certificate packs.
+- **Encrypted Root/Default Pack Upload**:
+    - Updated `/api/certs/upload` to store the default certificate pack using `manager.save_cert_pack('default', ...)`, ensuring root private keys are encrypted at rest with MVK.
+    - Fixed `save_cert_pack()` path resolution for default/root packs.
+
 ### Security & Dependency Hardening
+- **Recovery Key Never Logged**:
+    - Eliminated plaintext Emergency Recovery Key from log files; confirmation notices now log non-sensitive event confirmations without exposing recovery keys.
 - **PyPI Dependency Security Bump**:
     - Updated `urllib3` to `>=2.7.0` (Fixes CVE-2026-44432).
     - Updated `cryptography` to `>=47.0.0` (Fixes CVE-2026-69249).
@@ -29,9 +34,11 @@
 - **Dockerfile Hardening**:
     - Updated Debian Bookworm package management to use `apt-get dist-upgrade -y` and installed `ca-certificates` for system-level CVE remediation.
 
-### Fixed
+### Fixed (Authentication & Protocol)
 - **Authentication Middleware**: Resolved a `302 FOUND` infinite redirect loop on `/login` and `/setup` routes.
 - **CertManager**: Added support for passing `mvk` directly to `CertManager.unlock()` and `ConfigManager.unlock()`.
+
+---
 
 ## [v1.2.0.20260308.02] - 2026-03-08
 ### Added

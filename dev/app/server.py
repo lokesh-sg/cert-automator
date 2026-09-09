@@ -161,6 +161,10 @@ def unlock_with_secret(provided_password: str = None, provided_recovery_key: str
                 manager.config_mgr.mvk = mvk
                 manager.config_mgr.master_password = provided_password
                 manager.config_mgr.save_config()
+                try:
+                    manager.migrate_all_cert_packs_to_mvk()
+                except Exception as mig_err:
+                    logger.warning(f"Cert pack migration error on legacy upgrade: {mig_err}")
                 migrated = True
                 
                 logger.info("--- MIGRATION NOTICE ---")
@@ -172,6 +176,10 @@ def unlock_with_secret(provided_password: str = None, provided_recovery_key: str
         if mvk:
             if manager.unlock(mvk=mvk):
                 manager.config_mgr.master_password = provided_password
+                try:
+                    manager.migrate_all_cert_packs_to_mvk()
+                except Exception as mig_err:
+                    logger.warning(f"Cert pack migration error on unlock: {mig_err}")
                 return True, auth_data.get("username"), False, None
                 
         return False, "Decryption Failed", False, None
@@ -313,6 +321,10 @@ def recover_password():
     # Unlock manager with MVK (All existing configs and keys remain 100% readable!)
     if manager.unlock(mvk=mvk):
         manager.config_mgr.master_password = new_password
+        try:
+            manager.migrate_all_cert_packs_to_mvk()
+        except Exception as mig_err:
+            logger.warning(f"Cert pack migration error on recovery: {mig_err}")
         session.permanent = True
         session['logged_in'] = True
         session['username'] = auth_data.get('username', 'admin')
@@ -513,13 +525,9 @@ def upload_certs():
     # 3. Chain
     full_chain_bytes = validator.combine_chain(cert_data, chain_data)
 
-    # 4. Save
+    # 4. Save (Secured at rest using manager)
     try:
-        os.makedirs(CERT_DIR, exist_ok=True)
-        with open(os.path.join(CERT_DIR, 'fullchain.pem'), 'wb') as f:
-            f.write(full_chain_bytes)
-        with open(os.path.join(CERT_DIR, 'privkey.pem'), 'wb') as f:
-            f.write(validator.normalize_pem(key_data))
+        manager.save_cert_pack('default', full_chain_bytes, validator.normalize_pem(key_data))
     except Exception as e:
         return jsonify({"success": False, "message": f"Failed to save files: {e}"}), 500
     
@@ -647,21 +655,11 @@ def inspect_cert():
         # Read Cert (Always Plain)
         with open(cert_path, 'rb') as f: cert_data = f.read()
         
-        # Read Key (Maybe Encrypted)
-        base_dir = os.path.dirname(cert_path)
-        enc_key_path = os.path.join(base_dir, "privkey.enc")
-        
+        # Read Key (Handles both encrypted .enc and plain .pem via manager)
         try:
-            if os.path.exists(enc_key_path):
-                 # Decrypt for Inspection
-                 with open(enc_key_path, 'rb') as f: enc_data = f.read()
-                 decrypted = manager.config_mgr.crypto.decrypt_data(enc_data, manager.config_mgr.master_password)
-                 key_data = decrypted.get('key').encode('utf-8') # Back to bytes
-            else:
-                 # Plain Text Fallback
-                 with open(key_path, 'rb') as f: key_data = f.read()
+            key_data = manager.get_private_key_data(pack_name)
         except Exception as e:
-             return jsonify({"found": True, "valid": False, "message": f"Failed to decrypt key: {str(e)}"})
+            return jsonify({"found": True, "valid": False, "message": f"Failed to decrypt key: {str(e)}"})
 
         cert_obj = validator.load_cert(cert_data)
         key_obj = validator.load_key(key_data)

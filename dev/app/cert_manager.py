@@ -161,19 +161,29 @@ class CertManager:
         if not safe_name:
             raise ValueError("Invalid pack name")
             
-        pack_dir = os.path.join(self.cert_dir, safe_name)
-        if not os.path.exists(pack_dir):
-            os.makedirs(pack_dir)
+        if safe_name.lower() in ('default', 'root'):
+            safe_name = 'default'
+            pack_dir = self.cert_dir
+        else:
+            pack_dir = os.path.join(self.cert_dir, safe_name)
+            if not os.path.exists(pack_dir):
+                os.makedirs(pack_dir)
             
         with open(os.path.join(pack_dir, "fullchain.pem"), "wb") as f:
-            f.write(cert_content)
+            if isinstance(cert_content, str):
+                f.write(cert_content.encode('utf-8'))
+            else:
+                f.write(cert_content)
             
         # Security: Encrypt Private Key at Rest
         # We use the ConfigManager's crypto utility (AES-256)
         try:
             # Encrypt key content
             # Ensure key is string for JSON serialization inside encrypt_data
-            key_str = key_content.decode('utf-8')
+            if isinstance(key_content, bytes):
+                key_str = key_content.decode('utf-8', errors='ignore')
+            else:
+                key_str = str(key_content)
             secret = self.config_mgr.mvk or self.config_mgr.master_password
             encrypted_bytes = self.config_mgr.crypto.encrypt_data({"key": key_str}, secret)
             
@@ -189,10 +199,132 @@ class CertManager:
             self.logger.error(f"Failed to encrypt private key: {e}. Fallback to plain text (Protected 0600).")
             # Fallback (Safety Net)
             with open(os.path.join(pack_dir, "privkey.pem"), "wb") as f:
-                f.write(key_content)
+                if isinstance(key_content, str):
+                    f.write(key_content.encode('utf-8'))
+                else:
+                    f.write(key_content)
             os.chmod(os.path.join(pack_dir, "privkey.pem"), 0o600)
             
         return safe_name
+
+    def decrypt_private_key_content(self, enc_data: bytes, pack_name: str = None) -> tuple[str, str]:
+        """
+        Decrypts an encrypted private key payload (ENC:...).
+        Tries MVK first, then falls back to master_password.
+        If master_password succeeds and MVK is active, auto-migrates the key to MVK encryption.
+        Returns (raw_key_str, successful_secret_type).
+        """
+        candidates = []
+        if self.config_mgr.mvk:
+            candidates.append(('mvk', self.config_mgr.mvk))
+        if self.config_mgr.master_password and self.config_mgr.master_password != self.config_mgr.mvk:
+            candidates.append(('master_password', self.config_mgr.master_password))
+
+        if not candidates:
+            raise ValueError("Vault is locked: no MVK or master password available to decrypt private key.")
+
+        last_error = None
+        for secret_type, secret in candidates:
+            try:
+                decrypted_json = self.config_mgr.crypto.decrypt_data(enc_data, secret)
+                raw_key = decrypted_json.get('key')
+                if raw_key:
+                    # Self-healing: If encrypted with legacy master_password and MVK is active, re-encrypt with MVK!
+                    if secret_type == 'master_password' and self.config_mgr.mvk:
+                        try:
+                            cert_path, _ = self.get_cert_paths(pack_name)
+                            base_dir = os.path.dirname(cert_path)
+                            enc_key_path = os.path.join(base_dir, "privkey.enc")
+                            new_enc = self.config_mgr.crypto.encrypt_data({"key": raw_key}, self.config_mgr.mvk)
+                            with open(enc_key_path, "wb") as f:
+                                f.write(new_enc)
+                            self.logger.info(f"Self-healing: Successfully migrated private key for '{pack_name or 'default'}' from legacy password to MVK encryption.")
+                        except Exception as heal_err:
+                            self.logger.warning(f"Could not re-encrypt key with MVK: {heal_err}")
+                    return raw_key, secret_type
+            except Exception as e:
+                last_error = e
+
+        err_msg = f"Failed to decrypt private key for pack '{pack_name or 'default'}'. Attempted {len(candidates)} key candidate(s)."
+        if last_error:
+            err_msg += f" Error: {last_error}"
+        self.logger.error(err_msg)
+        raise ValueError(err_msg)
+
+    def get_private_key_data(self, pack_name: str = None) -> bytes:
+        """
+        Retrieves the raw PEM private key bytes for the specified pack.
+        Handles encrypted 'privkey.enc' (with dual-envelope fallback and self-healing)
+        as well as legacy plain text 'privkey.pem'.
+        """
+        cert_path, key_path = self.get_cert_paths(pack_name)
+        base_dir = os.path.dirname(cert_path)
+        enc_key_path = os.path.join(base_dir, "privkey.enc")
+
+        if os.path.exists(enc_key_path):
+            with open(enc_key_path, 'rb') as f:
+                enc_data = f.read()
+            raw_key, _ = self.decrypt_private_key_content(enc_data, pack_name)
+            return raw_key.encode('utf-8')
+        elif os.path.exists(key_path):
+            with open(key_path, 'rb') as f:
+                return f.read()
+        else:
+            raise FileNotFoundError(f"No private key found for pack '{pack_name or 'default'}'")
+
+    def migrate_all_cert_packs_to_mvk(self):
+        """
+        Scans all certificate packs (root and subdirectories).
+        Migrates any legacy password-encrypted keys to MVK,
+        and secures plain text privkey.pem keys to encrypted privkey.enc.
+        """
+        if not self.config_mgr.mvk:
+            return
+            
+        packs = self.list_cert_packs()
+        migrated_count = 0
+        for p in packs:
+            pack_id = p.get('id')
+            cert_path, key_path = self.get_cert_paths(pack_id)
+            base_dir = os.path.dirname(cert_path)
+            enc_key_path = os.path.join(base_dir, "privkey.enc")
+            
+            if os.path.exists(enc_key_path):
+                try:
+                    with open(enc_key_path, 'rb') as f:
+                        enc_data = f.read()
+                    # Check if already encrypted with MVK
+                    try:
+                        self.config_mgr.crypto.decrypt_data(enc_data, self.config_mgr.mvk)
+                        continue # Already MVK-encrypted
+                    except Exception:
+                        pass
+                    
+                    # Decrypt with fallback to master_password
+                    if self.config_mgr.master_password:
+                        raw_key, _ = self.decrypt_private_key_content(enc_data, pack_id)
+                        if raw_key:
+                            migrated_count += 1
+                except Exception as e:
+                    self.logger.warning(f"Vault Migration: Could not migrate key for pack '{pack_id}': {e}")
+                    
+            elif os.path.exists(key_path):
+                # Legacy unencrypted PEM key - secure it
+                try:
+                    with open(key_path, 'rb') as f:
+                        raw_key = f.read().decode('utf-8', errors='ignore')
+                    if raw_key and ("BEGIN" in raw_key):
+                        new_enc = self.config_mgr.crypto.encrypt_data({"key": raw_key}, self.config_mgr.mvk)
+                        with open(enc_key_path, 'wb') as f:
+                            f.write(new_enc)
+                        os.remove(key_path)
+                        migrated_count += 1
+                        self.logger.info(f"Vault Migration: Secured plain-text private key for '{pack_id}' with MVK.")
+                except Exception as e:
+                    self.logger.warning(f"Vault Migration: Could not secure plain key for '{pack_id}': {e}")
+                    
+        if migrated_count > 0:
+            self.logger.info(f"Vault Migration: Successfully migrated {migrated_count} certificate keys to MVK.")
 
     def delete_cert_pack(self, name):
         """Deletes a certificate pack."""
@@ -248,10 +380,8 @@ class CertManager:
                     with open(enc_key_path, 'rb') as f:
                         enc_data = f.read()
                     
-                    # Decrypt
-                    secret = self.config_mgr.mvk or self.config_mgr.master_password
-                    decrypted_json = self.config_mgr.crypto.decrypt_data(enc_data, secret)
-                    raw_key = decrypted_json.get('key')
+                    # Decrypt with MVK and fallback to master_password + self-healing
+                    raw_key, _ = self.decrypt_private_key_content(enc_data, cert_pack)
                     
                     # Write to Secure Temp File
                     fd, temp_key_path = tempfile.mkstemp()
@@ -442,7 +572,6 @@ class CertManager:
                 
                 # 1. Local Check
                 pack = svc.get('cert_pack_id') or svc.get('cert_pack')
-                cert_path, _ = self.get_cert_paths(pack)
                 cert_path, _ = self.get_cert_paths(pack)
                 
                 status = {
