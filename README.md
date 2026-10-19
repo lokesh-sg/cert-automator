@@ -67,7 +67,9 @@ services:
       - ./logs:/app/logs
     environment:
       - FLASK_SECRET=GenerateASecretStringHere
-      # See documentation/ENVIRONMENT_VARIABLES.md for full list of accepted variables.
+      # Unattended auto-unlock on container/host restart (optional):
+      # - MASTER_PASSWORD=YourVaultPassword
+      # - RECOVERY_KEY=YourEmergencyRecoveryKey
       # Note: CERT_DIR and BACKUP_DIR env vars are optional.
       # The app automatically detects if '/certs' or '/backup' are mounted.
 ```
@@ -86,6 +88,9 @@ chown -R 1000:1000 config.yaml auth.json certs backup logs
 docker compose up -d
 ```
 Visit `http://localhost:5050` to initialize your vault!
+
+### 4. Configuration & Environment Variables
+For a full list of all supported environment variables, including unattended auto-unlock, session lifetimes, custom paths, and debugging, see the **[Environment Variables Reference](documentation/ENVIRONMENT_VARIABLES.md)**.
 
 ---
 

@@ -1,7 +1,7 @@
 # Technical Specifications - CertAutomator
 
-**Version**: v1.2.0.20260308.01
-**Date**: 2026-03-08
+**Version**: v1.2.1.20261018.03
+**Date**: 2026-10-18
 **Author**: Lokesh G
 
 ## 1. Project Structure
@@ -25,7 +25,7 @@
 └── run_dev.sh               # Local Development Launcher
 ```
 
-## 2. Certificate Lifecycle Architecture (v1.2.0)
+## 2. Certificate Lifecycle Architecture (v1.2.1)
 CertAutomator has evolved from a push-only tool to a **Source-Storage-Sink** architecture.
 
 ### 2.1 Sources (Inbound)

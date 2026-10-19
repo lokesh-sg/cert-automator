@@ -1,7 +1,7 @@
 # System Architecture - CertAutomator
 
 **Version**: 1.2.1
-**Date**: 2026-08-10
+**Date**: 2026-10-18
 **Author**: Systems Architecture Team
 
 ## 1. High-Level Design
