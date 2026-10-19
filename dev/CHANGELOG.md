@@ -10,6 +10,9 @@
     - Updated Portainer path detection to save the stable container **name** (`docker restart portainer`) rather than ephemeral container IDs, and added self-healing container lookup in `PortainerHandler.renew()` if a container ID changes after recreation.
 - **SSH Sudo Execution & Log Noise Elimination**:
     - Added `SSHHelper.execute_sudo_command()` to pass `sudo -S -p ''` directly when a password is configured, eliminating false `ERROR - Command failed (Exit 1): sudo: a password is required` log errors across `BaseSSHHandler`, `PortainerHandler`, `WazuhHandler`, `OpenMediaVaultHandler`, and `NginxProxyManagerSource`.
+- **Cryptography Deprecation & Console Logging**:
+    - Switched `BaseSSHHandler` from deprecated `not_valid_after` to `not_valid_after_utc`, eliminating console `CryptographyDeprecationWarning`.
+    - Added `logging.StreamHandler(sys.stdout)` to server root logger so that startup auto-unlock confirmations, watchdog events, and renewals stream directly to `docker logs`.
 - **Dual-Envelope Password Change & Reset Fixes**:
     - Updated `/api/change-password` to re-wrap `MVK` inside `auth.json`'s `password_envelope` when changing the master password.
     - Updated `/api/reset` to authenticate via Dual-Envelope password or Emergency Recovery Key, and ensured `ConfigManager.save_config()` performs rolling backups whenever unlocked via `MVK`.

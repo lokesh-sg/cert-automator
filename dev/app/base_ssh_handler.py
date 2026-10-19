@@ -153,8 +153,12 @@ class BaseSSHHandler(CertificateHandler):
                 else:
                     raise e
 
-            not_after = cert_obj.not_valid_after
-            now = datetime.datetime.utcnow()
+            not_after = getattr(cert_obj, 'not_valid_after_utc', None)
+            if not_after is not None:
+                now = datetime.datetime.now(datetime.timezone.utc)
+            else:
+                not_after = cert_obj.not_valid_after
+                now = datetime.datetime.utcnow()
             days_remaining = (not_after - now).days
             
             return {

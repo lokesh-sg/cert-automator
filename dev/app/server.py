@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template, send_from_directory, session, redirect, url_for
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 import os
+import sys
 import logging
 from logging.handlers import RotatingFileHandler
 import json
@@ -97,12 +98,17 @@ def is_auth_configured():
         return False
 
 # Initialize Manager (Starts LOCKED unless env var provided)
-# Configure Logger to file
+# Configure Logger to file and stdout (for Docker logs)
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 file_handler = RotatingFileHandler(LOG_FILE, maxBytes=10*1024*1024, backupCount=5)
-file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+file_handler.setFormatter(formatter)
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setFormatter(formatter)
+
 root_logger = logging.getLogger()
 root_logger.addHandler(file_handler)
+root_logger.addHandler(console_handler)
 root_logger.setLevel(logging.INFO)
 
 master_password = os.getenv('MASTER_PASSWORD') # Initialize Cert Manager
