@@ -107,4 +107,4 @@ For a full list of all supported environment variables, including unattended aut
 
 ## Community
 Issues and Pull Requests are welcome!
-*Built with ❤️ for privacy and automation.*
+*Built for privacy and homelab automation.*
