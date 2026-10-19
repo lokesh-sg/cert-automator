@@ -67,6 +67,7 @@ services:
       - ./logs:/app/logs
     environment:
       - FLASK_SECRET=GenerateASecretStringHere
+      # See documentation/ENVIRONMENT_VARIABLES.md for full list of accepted variables.
       # Note: CERT_DIR and BACKUP_DIR env vars are optional.
       # The app automatically detects if '/certs' or '/backup' are mounted.
 ```
