@@ -197,10 +197,9 @@ class OpenMediaVaultHandler(BaseSSHHandler):
                 # Better: Read raw again to be precise.
                 
                 cat_cmd = f"cat {remote_cert_path}"
-                s, o = ssh.execute_command(cat_cmd)
+                s, o = ssh.execute_command(cat_cmd, log_errors=False)
                 if not s:
-                     # Try sudo
-                    s, o = ssh.execute_command(f"sudo -n {cat_cmd}")
+                    s, o = ssh.execute_sudo_command(cat_cmd)
                     
                 if s:
                     try:
@@ -226,7 +225,7 @@ class OpenMediaVaultHandler(BaseSSHHandler):
         finally:
             # Cleanup
             try:
-                ssh.execute_command(f"rm {remote_cert_tmp} {remote_key_tmp} {remote_script_path}")
+                ssh.execute_command(f"rm -f {remote_cert_tmp} {remote_key_tmp} {remote_script_path}", log_errors=False)
             except:
                 pass
 
@@ -266,15 +265,12 @@ class OpenMediaVaultHandler(BaseSSHHandler):
         
         # 1. Get all SSL certificates from DB
         cmd = "omv-confdbadm read conf.system.certificate.ssl"
-        success, output = ssh.execute_command(cmd)
+        success, output = ssh.execute_command(cmd, log_errors=False)
         
         # Sudo handling
         if not success or "permission" in output.lower():
-            self.logger.info("omv-confdbadm requires sudo...")
-            password = self.config.get('password')
-            success, output = ssh.execute_command(f"sudo -n {cmd}")
-            if not success and password:
-                 success, output = ssh.execute_command(f"sudo -S -p '' {cmd}", stdin_input=password)
+            self.logger.info("omv-confdbadm requires elevated privileges, running with sudo...")
+            success, output = ssh.execute_sudo_command(cmd)
         
         if not success:
             self.logger.error(f"Failed to list SSL certs from DB: {output}")
@@ -302,22 +298,15 @@ class OpenMediaVaultHandler(BaseSSHHandler):
             self.logger.info(f"Found {len(certs)} certificates in DB. correlating with filesystem...")
             
             # 2. Correlate with files to find the 'active' one (most recently used)
-            # We list the file associated with each UUID and check timestamps
-            
             best_uuid = None
             newest_ts = 0
             
             for cert in certs:
                 uuid = cert.get('uuid')
-                # OMV stores them as openmediavault-<uuid>.crt/key usually, 
-                # OR we can assume the one referenced by nginx is actively read.
-                
-                # Check file modification time
                 check_cmd = f"stat -c %Y /etc/ssl/certs/openmediavault-{uuid}.crt"
-                s, o = ssh.execute_command(check_cmd)
+                s, o = ssh.execute_command(check_cmd, log_errors=False)
                 if not s:
-                     # Try sudo
-                    s, o = ssh.execute_command(f"sudo -n {check_cmd}")
+                    s, o = ssh.execute_sudo_command(check_cmd, log_errors=False)
                 
                 if s and o.strip().isdigit():
                     ts = int(o.strip())

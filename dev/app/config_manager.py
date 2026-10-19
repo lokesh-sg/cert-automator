@@ -157,12 +157,10 @@ class ConfigManager:
         self.save_config()
 
     def save_config(self):
-        """Saves the current config to disk (Encrypted if password set)."""
+        """Saves the current config to disk (Encrypted if MVK or password set)."""
         try:
-            if self.master_password:
-                # Create Backup
-                import shutil
-            if self.master_password:
+            secret = self.mvk or self.master_password
+            if secret:
                 # Create Backup Directory
                 if self.backup_dir:
                     backup_dir = self.backup_dir
@@ -201,16 +199,14 @@ class ConfigManager:
                         self.logger.error(f"Failed to create backup: {e}")
 
                 # Encrypted Save
-                secret = self.mvk or self.master_password
-                if secret:
-                    encrypted_bytes = self.crypto.encrypt_data(self.config, secret)
-                    with open(self.config_path, 'wb') as f:
-                        f.write(encrypted_bytes)
-                    self.logger.info("Configuration saved (Encrypted).")
-                else:
-                    self.logger.warning("Saving configuration in PLAIN TEXT (No secret key set).")
-                    with open(self.config_path, 'w') as f:
-                        yaml.dump(self.config, f, sort_keys=False, default_flow_style=False)
+                encrypted_bytes = self.crypto.encrypt_data(self.config, secret)
+                with open(self.config_path, 'wb') as f:
+                    f.write(encrypted_bytes)
+                self.logger.info("Configuration saved (Encrypted).")
+            else:
+                self.logger.warning("Saving configuration in PLAIN TEXT (No secret key set).")
+                with open(self.config_path, 'w') as f:
+                    yaml.dump(self.config, f, sort_keys=False, default_flow_style=False)
         except Exception as e:
             self.logger.error(f"Error saving config: {e}")
             raise

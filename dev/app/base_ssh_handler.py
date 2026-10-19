@@ -38,43 +38,34 @@ class BaseSSHHandler(CertificateHandler):
             owner_reference_path: Path to a file/dir to clone ownership from (for chown).
                                   If None, chown is skipped.
         """
-        if ssh.upload_file(local_path, remote_path):
+        if ssh.upload_file(local_path, remote_path, log_errors=False):
             return True
         
-        self.logger.warning(f"Direct upload to {remote_path} failed. Attempting sudo workaround via /tmp...")
+        self.logger.info(f"Direct upload to {remote_path} requires elevated privileges. Using sudo staging via /tmp...")
         
         filename = os.path.basename(remote_path)
         tmp_path = f"/tmp/upload_{filename}"
-        password = self.config.get('password')
         
         # 1. Upload to /tmp
         if not ssh.upload_file(local_path, tmp_path):
             self.logger.error(f"Failed to upload to temporary path {tmp_path}")
             return False
             
-        # Helper to run sudo cmd with fallback
-        def run_sudo(cmd):
-            # Try non-interactive first
-            s, o = ssh.execute_command(f"sudo -n {cmd}")
-            if not s and "password" in o.lower() and password:
-                # Try with password
-                s, o = ssh.execute_command(f"sudo -S -p '' {cmd}", stdin_input=password)
-            return s, o
-
-        # 2. Sudo Move
-        move_cmd = f"mv {tmp_path} {remote_path}"
-        s, o = run_sudo(move_cmd)
+        # 2. Sudo Move (and ensure parent directory exists)
+        target_dir = os.path.dirname(remote_path)
+        move_cmd = f"sh -c 'mkdir -p \"{target_dir}\" && mv \"{tmp_path}\" \"{remote_path}\"'"
+        s, o = ssh.execute_sudo_command(move_cmd)
         
         if not s:
             self.logger.error(f"Failed to move file with sudo: {o}")
             # Try to clean up tmp
-            ssh.execute_command(f"rm {tmp_path}")
+            ssh.execute_command(f"rm -f {tmp_path}", log_errors=False)
             return False
             
         # 3. Fix Ownership
         if owner_reference_path:
             chown_cmd = f"chown --reference={owner_reference_path} {remote_path}"
-            s2, o2 = run_sudo(chown_cmd)
+            s2, o2 = ssh.execute_sudo_command(chown_cmd)
             
             if not s2:
                 self.logger.warning(f"Failed to fix ownership (chown) - Service might not be able to read file: {o2}")
@@ -86,28 +77,21 @@ class BaseSSHHandler(CertificateHandler):
     def _restart_service(self, ssh, restart_cmd):
         """
         Restarts a service using the provided command.
-        Attempts direct execution, then sudo -n, then sudo -S (with password).
+        Attempts direct execution (unless command already starts with sudo), then sudo.
         """
         if not restart_cmd:
             return True
 
         self.logger.info(f"Executing Restart Command: {restart_cmd}")
-        password = self.config.get('password')
 
-        # Try direct
-        success, output = ssh.execute_command(restart_cmd)
-        
-        # If failed, try sudo -n (non-interactive)
-        if not success:
-             self.logger.info("Command failed, trying sudo -n...")
-             success, output = ssh.execute_command(f"sudo -n {restart_cmd}")
-        
-        # If failed and password required, try sudo -S (stdin password)
-        # We try this regardless of the error message if sudo -n failed and we have a password,
-        # because some systems might give empty or localized errors.
-        if not success and password:
-             self.logger.info("Command failed, trying sudo -S (with password)...")
-             success, output = ssh.execute_command(f"sudo -S -p '' {restart_cmd}", stdin_input=password)
+        if restart_cmd.strip().startswith("sudo "):
+            success, output = ssh.execute_sudo_command(restart_cmd)
+        else:
+            # Try direct first without logging expected permission errors
+            success, output = ssh.execute_command(restart_cmd, log_errors=False)
+            if not success:
+                self.logger.info("Direct restart requires elevated privileges, retrying with sudo...")
+                success, output = ssh.execute_sudo_command(restart_cmd)
 
         if success:
              self.logger.info(f"Restart Output: {output.strip()}")
@@ -137,16 +121,11 @@ class BaseSSHHandler(CertificateHandler):
         try:
             # 1. Read File
             cmd = f"cat {remote_path}"
-            success, output = ssh.execute_command(cmd)
+            success, output = ssh.execute_command(cmd, log_errors=False)
             
             # Sudo fallback
-            if not success and ("denied" in output.lower() or "password" in output.lower()):
-                password = self.config.get('password')
-                # Try non-interactive sudo
-                success, output = ssh.execute_command(f"sudo -n {cmd}")
-                if not success and password:
-                    # Try password sudo
-                    success, output = ssh.execute_command(f"sudo -S -p '' {cmd}", stdin_input=password)
+            if not success:
+                success, output = ssh.execute_sudo_command(cmd)
             
             if not success:
                 return {"success": False, "message": f"Failed to read remote file: {output}"}

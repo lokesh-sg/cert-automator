@@ -1,4 +1,18 @@
-## [v1.2.1] - 2026-09-09 (Latest)
+## [v1.2.1] - 2026-10-18 (Latest)
+
+### Fixed (Background Scheduler, Portainer & SSH Sudo Hardening)
+- **Background Watchdog & Startup Scheduler Activation**:
+    - Fixed an issue where `start_scheduler()` was defined in `server.py` but never invoked when running under Gunicorn (`app.server:app`), preventing automatic startup health checks and nightly 12:30 AM certificate source pulls/renewals.
+    - Added thread-safe singleton initialization so the scheduler starts automatically on module load and executes an initial source pull, expiry check, and downstream sync 10 seconds after vault unlock, followed by nightly runs at 12:30 AM.
+    - Added optional Zero-Touch Startup Auto-Unlock via `MASTER_PASSWORD` or `RECOVERY_KEY` environment variables using Dual-Envelope unwrapping (`unlock_with_secret`), allowing unattended container restarts to immediately unlock the vault and run scheduled renewals.
+- **Portainer Renewal, Distroless Path Detection & Container Recovery**:
+    - Resolved `OCI runtime exec failed: exec: "ls": executable file not found in $PATH` during Portainer path auto-detection by inspecting host bind mounts directly on the host OS instead of running `docker exec ls` inside Portainer's distroless/scratch image.
+    - Updated Portainer path detection to save the stable container **name** (`docker restart portainer`) rather than ephemeral container IDs, and added self-healing container lookup in `PortainerHandler.renew()` if a container ID changes after recreation.
+- **SSH Sudo Execution & Log Noise Elimination**:
+    - Added `SSHHelper.execute_sudo_command()` to pass `sudo -S -p ''` directly when a password is configured, eliminating false `ERROR - Command failed (Exit 1): sudo: a password is required` log errors across `BaseSSHHandler`, `PortainerHandler`, `WazuhHandler`, `OpenMediaVaultHandler`, and `NginxProxyManagerSource`.
+- **Dual-Envelope Password Change & Reset Fixes**:
+    - Updated `/api/change-password` to re-wrap `MVK` inside `auth.json`'s `password_envelope` when changing the master password.
+    - Updated `/api/reset` to authenticate via Dual-Envelope password or Emergency Recovery Key, and ensured `ConfigManager.save_config()` performs rolling backups whenever unlocked via `MVK`.
 
 ### Added (Dual-Envelope Cryptography)
 - **Zero-Loss Password Recovery**: Replaced legacy single-password encryption with Dual-Envelope Cryptography.

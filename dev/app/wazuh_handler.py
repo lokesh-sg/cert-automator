@@ -58,16 +58,9 @@ class WazuhHandler(BaseSSHHandler):
         ]
         
         for cmd in fix_cmds:
-            # Using execute_command directly. Ideally we use sudo if not root.
-            # BaseSSHHandler helper:
-            s, o = ssh.execute_command(f"sudo -n {cmd}") 
-            # If sudo -n fails (password needed), try with password
-            if not s and "password" in o.lower() and self.config.get('password'):
-                 s, o = ssh.execute_command(f"sudo -S -p '' {cmd}", stdin_input=self.config.get('password'))
-
+            s, o = ssh.execute_sudo_command(cmd)
             if not s:
                  self.logger.warning(f"Failed to fix permissions ({cmd}): {o}")
-                 # We warn but don't abort, as it MIGHT still work if defaults were okay.
             else:
                  self.logger.info(f"Fixed permissions: {cmd}")
 
@@ -101,13 +94,9 @@ class WazuhHandler(BaseSSHHandler):
         config_path = "/etc/wazuh-dashboard/opensearch_dashboards.yml"
         
         # 1. Read Remote Config
-        s, content = ssh.execute_command(f"cat {config_path}")
+        s, content = ssh.execute_command(f"cat {config_path}", log_errors=False)
         if not s:
-            # Fallback: Try with sudo
-            s, content = ssh.execute_command(f"sudo -n cat {config_path}")
-            
-        if not s and "password" in content.lower() and self.config.get('password'):
-            s, content = ssh.execute_command(f"sudo -S -p '' cat {config_path}", stdin_input=self.config.get('password'))
+            s, content = ssh.execute_sudo_command(f"cat {config_path}")
 
         if not s:
             self.logger.error(f"Could not read config file {config_path}: {content}")
@@ -116,14 +105,8 @@ class WazuhHandler(BaseSSHHandler):
         original_content = content
         
         # 2. Check and Replace
-        # Regex to find: server.ssl.key: "..." or server.ssl.key: ...
-        # logic: ^\s*server\.ssl\.key\s*:\s*["']?([^"'\n]+)["']?
-        
-        # Helper to replace value
         def replace_yaml_value(text, key, new_value):
-            # Matches: key: "value" OR key: value
             pattern = rf'(^\s*{re.escape(key)}\s*:\s*)(["\']?.*?["\']?)(?=\s*(?:#.*)?$)'
-            # We enforce quotes for safety
             replacement = f'\\1"{new_value}"'
             return re.sub(pattern, replacement, text, flags=re.MULTILINE)
 
@@ -137,7 +120,6 @@ class WazuhHandler(BaseSSHHandler):
         self.logger.info("Updating Wazuh configuration to match new certificate paths...")
         
         # 3. Write Back (Robustly)
-        # We use a localized temporary file to avoid complex escaping in echo
         fd, local_temp = tempfile.mkstemp()
         try:
              with os.fdopen(fd, 'w') as f:
@@ -151,9 +133,7 @@ class WazuhHandler(BaseSSHHandler):
                  
              # Move into place with sudo
              move_cmd = f"mv {remote_tmp} {config_path}"
-             s, o = ssh.execute_command(f"sudo -n {move_cmd}")
-             if not s and "password" in o.lower() and self.config.get('password'):
-                 s, o = ssh.execute_command(f"sudo -S -p '' {move_cmd}", stdin_input=self.config.get('password'))
+             s, o = ssh.execute_sudo_command(move_cmd)
                  
              if not s:
                  self.logger.error(f"Failed to overwrite config: {o}")

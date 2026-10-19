@@ -310,8 +310,28 @@
                     </div>
                     <button id="change-pass-btn" class="btn btn-primary" style="width: 100%;">Update Password</button>
                 </div>
+
+                <div style="margin-bottom: 1.5rem; border-top: 1px solid var(--card-border); padding-top: 1rem;">
+                    <h4 style="margin-bottom: 0.5rem; color: var(--accent-primary);">Emergency Recovery Key</h4>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                        Regenerate a new 32-character Emergency Recovery Key to safely reset forgotten passwords without losing certificates or configurations.
+                    </p>
+                    <div class="form-group" style="margin-bottom: 0.75rem;">
+                        <input type="password" id="recovery-auth-pass" placeholder="Enter Master Password to Confirm"
+                            style="width: 100%; padding: 0.5rem; background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); color: white; border-radius: 4px;">
+                    </div>
+                    <button id="regen-recovery-btn" class="btn btn-secondary" style="width: 100%; border-color: var(--accent-primary); color: var(--accent-primary);">
+                        Generate New Recovery Key
+                    </button>
+                    <div id="recovery-key-display-box" style="display: none; margin-top: 1rem; padding: 0.75rem; background: rgba(0, 240, 255, 0.08); border: 1px solid var(--accent-primary); border-radius: 4px;">
+                        <div style="font-size: 0.75rem; color: var(--accent-primary); font-weight: 700; margin-bottom: 0.25rem;">NEW EMERGENCY RECOVERY KEY:</div>
+                        <div id="new-recovery-key-val" style="font-family: monospace; font-size: 0.9rem; color: #fff; word-break: break-all; margin-bottom: 0.5rem;"></div>
+                        <button id="copy-recovery-key-btn" class="btn btn-primary" style="width: 100%; font-size: 0.75rem; padding: 0.35rem;">Copy to Clipboard</button>
+                    </div>
+                </div>
+
                 <div
-                    style="text-align: center; margin-top: 2rem; border-top: 1px solid var(--card-border); padding-top: 1rem;">
+                    style="text-align: center; margin-top: 1rem; border-top: 1px solid var(--card-border); padding-top: 1rem;">
                     <button id="logout-btn" class="btn btn-secondary"
                         style="color: var(--error-color); border-color: var(--error-color);">Log Out</button>
                 </div>
@@ -2719,6 +2739,64 @@
                 btn.innerText = "Update Password";
             }
         };
+
+        // Emergency Recovery Key Generator Logic
+        const regenRecoveryBtn = document.getElementById('regen-recovery-btn');
+        if (regenRecoveryBtn) {
+            regenRecoveryBtn.onclick = async () => {
+                const authPass = document.getElementById('recovery-auth-pass').value;
+                if (!authPass) {
+                    showToast("Please enter your Master Password to verify.", "warning");
+                    return;
+                }
+
+                const confirmed = await showConfirm(
+                    "Regenerate Recovery Key?", 
+                    "This will invalidate your old Emergency Recovery Key and generate a new one. Continue?",
+                    "Generate Key"
+                );
+                if (!confirmed) return;
+
+                regenRecoveryBtn.disabled = true;
+                regenRecoveryBtn.innerText = "Generating...";
+
+                try {
+                    const res = await secureFetch('/api/recovery-key', {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'regenerate', current_password: authPass })
+                    });
+                    const data = await res.json();
+
+                    if (data.success && data.recovery_key) {
+                        showToast("New Emergency Recovery Key generated!", "success");
+                        document.getElementById('new-recovery-key-val').innerText = data.recovery_key;
+                        document.getElementById('recovery-key-display-box').style.display = 'block';
+                        document.getElementById('recovery-auth-pass').value = '';
+                    } else {
+                        showToast("Failed: " + (data.message || "Invalid password"), "error");
+                    }
+                } catch (e) {
+                    showToast("Error: " + e, "error");
+                } finally {
+                    regenRecoveryBtn.disabled = false;
+                    regenRecoveryBtn.innerText = "Generate New Recovery Key";
+                }
+            };
+        }
+
+        const copyRecoveryKeyBtn = document.getElementById('copy-recovery-key-btn');
+        if (copyRecoveryKeyBtn) {
+            copyRecoveryKeyBtn.onclick = () => {
+                const keyVal = document.getElementById('new-recovery-key-val').innerText;
+                if (keyVal) {
+                    navigator.clipboard.writeText(keyVal).then(() => {
+                        showToast("Recovery key copied to clipboard!", "success");
+                    }).catch(() => {
+                        showToast("Failed to copy key automatically.", "warning");
+                    });
+                }
+            };
+        }
 
         // Close on click outside (Update to include actionModal)
         window.onclick = (e) => {

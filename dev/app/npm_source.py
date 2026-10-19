@@ -26,22 +26,21 @@ class NginxProxyManagerSource(CertificateSource):
         self.logger.info(f"Connecting via SSH to NPM at {host} to pull certificate for {domain}...")
         ssh = SSHHelper(host, user, password=password)
         
-        # Determine prefix for commands
-        prefix = f"docker exec {container} " if is_docker else "sudo "
-        inner_prefix = " " if is_docker else " sudo "
-        
         try:
-            # Find the correct NPM certificate directory for the domain
-            # We look for the literal domain name in the Nginx config or LetsEncrypt live paths.
-            # NPM puts LE certs in /etc/letsencrypt/live/npm-[id]/
-            # To find the right [id], we can grep for the domain in /etc/letsencrypt/live/npm-*/README
-            # or more reliably, use openssl to check the domains in the certs.
+            def run_npm_cmd(raw_cmd):
+                if is_docker:
+                    # Try docker exec directly, fallback to sudo docker exec
+                    cmd = f"docker exec {container} {raw_cmd}"
+                    ok, out = ssh.execute_command(cmd, log_errors=False)
+                    if not ok:
+                        ok, out = ssh.execute_sudo_command(cmd)
+                    return ok, out
+                else:
+                    return ssh.execute_sudo_command(raw_cmd)
+
+            find_script = f"bash -c 'for d in $(ls -td /etc/letsencrypt/live/npm-*/ 2>/dev/null); do if openssl x509 -in \"${{d}}fullchain.pem\" -noout -ext subjectAltName 2>/dev/null | grep -q \"{domain}\"; then echo $d; exit 0; fi; done'"
             
-            # Command to find the cert folder containing the domain, sorting by modification time (newest first)
-            # This ensures if there are multiple npm-* folders for the same domain, we get the latest renewal.
-            find_cmd = f"{prefix}bash -c 'for d in $({inner_prefix}ls -td /etc/letsencrypt/live/npm-*/ 2>/dev/null); do if {inner_prefix}openssl x509 -in \"${{d}}fullchain.pem\" -noout -ext subjectAltName 2>/dev/null | grep -q \"{domain}\"; then echo $d; exit 0; fi; done'"
-            
-            success, stdout = ssh.execute_command(find_cmd)
+            success, stdout = run_npm_cmd(find_script)
             
             if not success or not stdout.strip():
                 return {
@@ -54,11 +53,8 @@ class NginxProxyManagerSource(CertificateSource):
             self.logger.info(f"Found certificate directory: {cert_dir}")
             
             # Read the files
-            cert_cmd = f"{prefix}cat {cert_dir}fullchain.pem"
-            key_cmd = f"{prefix}cat {cert_dir}privkey.pem"
-            
-            c_success, c_out = ssh.execute_command(cert_cmd)
-            k_success, k_out = ssh.execute_command(key_cmd)
+            c_success, c_out = run_npm_cmd(f"cat {cert_dir}fullchain.pem")
+            k_success, k_out = run_npm_cmd(f"cat {cert_dir}privkey.pem")
             
             if not c_success or not k_success:
                  return {

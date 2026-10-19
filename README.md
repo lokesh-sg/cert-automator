@@ -88,13 +88,13 @@ Visit `http://localhost:5050` to initialize your vault!
 
 ---
 
-## What's New in v1.1.3?
-- **"Cyber Vault" UI Overhaul**: A complete visual transformation featuring glassmorphism, high-contrast neon accents, and `JetBrains Mono` typography.
-- **CyberSelect™ Engine**: Custom dropdown system that bypasses OS limitations to ensure perfect font rendering on macOS and Linux.
-- **Stable Log Scrolling**: Intelligent anchor-based scroll locking for real-time log monitoring.
-- **OMV & Wazuh Integration**: Native handlers for OpenMediaVault and Wazuh Dashboard.
-- **Health Intelligence**: New dynamic status badges that analyze certificate health across all packs in real-time.
-- **Production Hardened**: Optimized Gunicorn deployment with multi-arch (amd64/arm64) Docker support.
+## What's New in v1.2.1?
+- **Background Watchdog & Startup Scheduler**: Activates automatic background health checks and 12:30 AM nightly pulls and renewals under Gunicorn WSGI.
+- **Portainer & Distroless Hardening**: Resolves `ls` command missing errors by inspecting host bind mounts directly and uses stable container names for restarts with self-healing recovery.
+- **SSH Sudo Refinement**: Directly supplies sudo passwords via `sudo -S` when required, eliminating noisy false error logs.
+- **In-App Emergency Recovery Key Generator**: Authenticated users can generate or rotate their 32-character Emergency Recovery Key directly from Settings.
+- **Dual-Envelope Cryptography (Zero-Loss Recovery)**: Master Vault Key (`MVK`) architecture with independent password and recovery envelopes.
+- **Production Hardened**: Python 3.13-slim-bookworm base image with latest security updates (`cryptography>=47.0.0`, `urllib3>=2.7.0`, `setuptools>=75.0.0`).
 - See [CHANGELOG.md](documentation/changelog.md) for full version history.
 
 ---

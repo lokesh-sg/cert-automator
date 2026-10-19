@@ -186,6 +186,15 @@ def unlock_with_secret(provided_password: str = None, provided_recovery_key: str
     except Exception as e:
         return False, f"Auth Error: {str(e)}", False, None
 
+# Auto-unlock on startup if MASTER_PASSWORD or RECOVERY_KEY environment variable is set
+_startup_recovery_key = os.getenv('RECOVERY_KEY')
+if (master_password or _startup_recovery_key) and manager.is_locked and is_auth_configured():
+    _ok, _msg, _, _ = unlock_with_secret(provided_password=master_password, provided_recovery_key=_startup_recovery_key)
+    if _ok:
+        logger.info("Vault automatically unlocked on startup via environment variable.")
+    else:
+        logger.warning(f"Auto-unlock via environment variable failed: {_msg}")
+
 # --- Middleware ---
 @app.before_request
 def check_auth():
@@ -348,13 +357,17 @@ def reset_system():
     if not confirm:
          return jsonify({"success": False, "message": "Confirmation required"}), 400
 
-    # 1. Verify either Master Password OR Emergency Token
+    # 1. Verify either Master Password OR Emergency Recovery Key via Dual-Envelope
     authenticated = False
-    if password and manager.unlock(password):
-        authenticated = True
-    elif token and token == RESET_TOKEN:
-        authenticated = True
-        logging.warning("System reset triggered via Emergency Token!")
+    if password:
+        ok, _, _, _ = unlock_with_secret(provided_password=password)
+        if ok:
+            authenticated = True
+    elif token:
+        ok, _, _, _ = unlock_with_secret(provided_recovery_key=token)
+        if ok:
+            authenticated = True
+            logging.warning("System reset triggered via Emergency Recovery Key!")
         
     if not authenticated:
         return jsonify({"success": False, "message": "Unauthorized reset. Invalid password or emergency token."}), 401
@@ -395,17 +408,37 @@ def change_password():
     if not current_password or not new_password:
         return jsonify({"success": False, "message": "Missing fields"}), 400
         
-    # 1. Verify Current Password
-    # Since we are unlocked, we can just compare with memory.
-    # Note: manager.config_mgr.master_password IS the current password in memory.
-    if current_password != manager.config_mgr.master_password:
+    # 1. Verify Current Password (check memory or verify against auth.json password_envelope)
+    password_verified = False
+    if manager.config_mgr.master_password and current_password == manager.config_mgr.master_password:
+        password_verified = True
+    elif os.path.exists(AUTH_FILE):
+        try:
+            with open(AUTH_FILE, 'r') as f:
+                auth_data = json.load(f)
+            if "password_envelope" in auth_data:
+                decrypted_mvk = manager.config_mgr.crypto.decrypt_envelope(auth_data["password_envelope"], current_password)
+                if decrypted_mvk:
+                    password_verified = True
+        except Exception:
+            password_verified = False
+
+    if not password_verified:
         return jsonify({"success": False, "message": "Current password incorrect"}), 401
         
     try:
-        # 2. Update Password in Memory
+        # 2. Update password_envelope in AUTH_FILE if Dual-Envelope is active
+        if os.path.exists(AUTH_FILE):
+            with open(AUTH_FILE, 'r') as f:
+                auth_data = json.load(f)
+            mvk = manager.config_mgr.mvk
+            if mvk:
+                auth_data["password_envelope"] = manager.config_mgr.crypto.encrypt_envelope(mvk, new_password)
+                with open(AUTH_FILE, 'w') as f:
+                    json.dump(auth_data, f, indent=2)
+
+        # 3. Update Password in Memory & Save Config
         manager.config_mgr.master_password = new_password
-        
-        # 3. Save (Re-encrypts with new password)
         manager.config_mgr.save_config()
         
         return jsonify({"success": True, "message": "Password updated successfully"})
@@ -413,6 +446,61 @@ def change_password():
         # Revert on failure to be safe
         manager.config_mgr.master_password = current_password
         return jsonify({"success": False, "message": f"Update failed: {str(e)}"}), 500
+
+@app.route('/api/recovery-key', methods=['POST'])
+def manage_recovery_key():
+    if manager.is_locked:
+        return jsonify({"success": False, "message": "System is locked"}), 401
+        
+    data = request.json or {}
+    action = data.get('action', 'view')  # 'view' or 'regenerate'
+    current_password = data.get('current_password')
+    
+    if not current_password:
+        return jsonify({"success": False, "message": "Master password is required for security"}), 400
+        
+    # Verify master password
+    password_verified = False
+    if manager.config_mgr.master_password and current_password == manager.config_mgr.master_password:
+        password_verified = True
+    elif os.path.exists(AUTH_FILE):
+        try:
+            with open(AUTH_FILE, 'r') as f:
+                auth_data = json.load(f)
+            if "password_envelope" in auth_data:
+                decrypted_mvk = manager.config_mgr.crypto.decrypt_envelope(auth_data["password_envelope"], current_password)
+                if decrypted_mvk:
+                    password_verified = True
+        except Exception:
+            password_verified = False
+
+    if not password_verified:
+        return jsonify({"success": False, "message": "Invalid password"}), 401
+        
+    mvk = manager.config_mgr.mvk
+    if not mvk:
+        return jsonify({"success": False, "message": "Vault key not loaded"}), 500
+
+    crypto = manager.config_mgr.crypto
+
+    if action == 'regenerate':
+        new_recovery_key = crypto.generate_recovery_key()
+        new_recovery_envelope = crypto.encrypt_envelope(mvk, new_recovery_key)
+        
+        with open(AUTH_FILE, 'r') as f:
+            auth_data = json.load(f)
+        auth_data["recovery_envelope"] = new_recovery_envelope
+        with open(AUTH_FILE, 'w') as f:
+            json.dump(auth_data, f, indent=2)
+            
+        logger.info("Emergency Recovery Key was regenerated by authenticated user.")
+        return jsonify({
+            "success": True, 
+            "recovery_key": new_recovery_key, 
+            "message": "New Emergency Recovery Key generated and saved."
+        })
+    else:
+        return jsonify({"success": False, "message": "Invalid action"}), 400
 
 @app.route('/logout')
 def logout():
@@ -640,7 +728,6 @@ def delete_certificate_pack(name):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-@app.route('/api/cert/inspect', methods=['GET'])
 @app.route('/api/cert/inspect', methods=['GET'])
 def inspect_cert():
     pack_name = request.args.get('pack')
@@ -974,11 +1061,9 @@ def download_temp_file(token, filename):
          return jsonify({"success": False, "message": "Access Denied"}), 403
          
     # Check if download is within allowed boundaries
-    # (In this app: /tmp or the certs/ directory)
+    # (Only temporary PFX/certificates in /tmp generated for Aruba ClearPass callback)
     allowed_dirs = [
         os.path.abspath('/tmp'),
-        os.path.abspath(os.path.join(os.getcwd(), CERT_DIR)),
-        os.path.abspath(os.path.join(os.getcwd(), BACKUP_DIR))
     ]
     
     is_safe = any(file_path.startswith(d) for d in allowed_dirs)
@@ -1004,13 +1089,26 @@ def download_temp_file(token, filename):
     )
 
 
+_scheduler_started = False
+_scheduler_lock = None
+
 def start_scheduler():
+    global _scheduler_started, _scheduler_lock
     import time
     import threading
     import datetime
+
+    if _scheduler_lock is None:
+        _scheduler_lock = threading.Lock()
+
+    with _scheduler_lock:
+        if _scheduler_started:
+            return
+        _scheduler_started = True
     
     def run_schedule():
-        # WAIT FOR UNLOCK (System starts locked)
+        root_logger.info("Scheduler: Background watchdog thread started. Waiting for vault unlock...")
+        # WAIT FOR UNLOCK (System starts locked unless unlocked via UI or MASTER_PASSWORD env)
         while manager.is_locked:
             time.sleep(5) # Check every 5 seconds
 
@@ -1019,15 +1117,13 @@ def start_scheduler():
 
         # RUN ONCE ON STARTUP (After Unlock)
         try:
-            root_logger.info("System Unlocked. Running initial Health & Expiry Check...")
+            root_logger.info("System Unlocked. Running initial Health, Source Pull & Expiry Check...")
             manager.perform_daily_health_check()
         except Exception as e:
             root_logger.error(f"Startup Health Check Failed: {e}")
 
         while True:
-            # Simple polling every minute to see if time matches? Or calculate sleep?
-            # User asked for "12:30 AM".
-            # Calculate sleep duration
+            # Calculate sleep duration until next 12:30 AM
             now = datetime.datetime.now()
             target = now.replace(hour=0, minute=30, second=0, microsecond=0)
             if now >= target:
@@ -1038,15 +1134,23 @@ def start_scheduler():
             
             time.sleep(wait_seconds)
             
+            # Wait if system was reset/locked in the meantime
+            while manager.is_locked:
+                time.sleep(10)
+
             # Run Nightly
             try:
-                root_logger.info("Scheduler: Running Nightly Health & Expiry Check...")
+                root_logger.info("Scheduler: Running Nightly Health, Source Pull & Expiry Check...")
                 manager.perform_daily_health_check()
             except Exception as e:
                 root_logger.error(f"Scheduler Task Failed: {e}")
 
-    t = threading.Thread(target=run_schedule, daemon=True)
+    t = threading.Thread(target=run_schedule, daemon=True, name="CertAutomator-Scheduler")
     t.start()
+
+# Start background scheduler when module is loaded (works for both Gunicorn WSGI and direct execution)
+if not os.environ.get("WERKZEUG_RUN_MAIN") == "false":
+    start_scheduler()
 
 if __name__ == '__main__':
     app.temp_registry = {}
