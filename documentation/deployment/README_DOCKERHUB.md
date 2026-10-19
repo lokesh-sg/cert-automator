@@ -31,18 +31,30 @@ CertAutomator speaks the language of your favorite local and enterprise services
 ---
 
 ## What's New in v1.2.1?
-- **Zero-Loss Password Reset**: Introduced Dual-Envelope Cryptography allowing Master Passwords to be reset via `/api/recover` using a 32-character Emergency Recovery Key without losing vault configurations or SSL keys.
+- **Background Watchdog & Startup Scheduler**: Activates automatic background health checks and 12:30 AM nightly pulls and renewals under Gunicorn WSGI.
+- **Portainer & Distroless Hardening**: Resolves `ls` missing errors on distroless/scratch Portainer CE containers and captures stable container names (`docker restart portainer`) with self-healing recovery.
+- **SSH Sudo Refinement**: Directly supplies sudo passwords via `sudo -S` when required, eliminating false `sudo: a password is required` alarm log errors.
+- **In-App Emergency Recovery Key Generator**: Authenticated users can generate or rotate their 32-character Emergency Recovery Key directly from Settings.
+- **Zero-Loss Password Reset**: Dual-Envelope Cryptography allows Master Passwords to be reset via `/api/recover` using a 32-character Emergency Recovery Key without losing vault configurations or SSL keys.
 - **Automatic Legacy Vault Migration**: Upgrades legacy single-password `auth.json` configurations to Dual-Envelope mode transparently on first login.
 - **Vulnerability Remediation**: Updated core PyPI packages (`urllib3>=2.7.0`, `cryptography>=47.0.0`, `setuptools>=75.0.0`) and base image dependencies to remediate published CVEs.
-- **Infinite Redirect Loop Fix**: Resolved `302 FOUND` redirection bug on `/login` and `/setup` endpoints.
-- **Security Patch**: Emergency Recovery Key is no longer written to log files in plaintext. It is shown exclusively in the browser UI (one-time) and never stored server-side.
 
 ---
 
-## What's New in v1.2.0?
-- **Native ACME Integration**: Automated certificate issuance and renewal via Let's Encrypt/ZeroSSL using DNS-01 (Cloudflare).
-- **Nginx Proxy Manager Sources**: Intelligent "Pull" integration with zero-restart logic and serial-number verification.
-- **Enterprise Security Hardening**: Forced network timeouts across all handlers to prevent DoS, and infrastructure pivot to Python 3.13.
+## Environment Variables Reference
+
+| Variable | Default | Required | Description |
+| :--- | :--- | :--- | :--- |
+| `FLASK_SECRET` | `'dev-fallback-secret-key-non-secure'` | **Yes** (in Prod) | Cryptographic signing key for session cookies and CSRF tokens. |
+| `USE_HTTPS` | `'false'` | Optional | Enforces `Secure` cookie flag when running behind HTTPS reverse proxies. |
+| `TZ` | `UTC` | Optional | Container timezone (e.g., `America/Los_Angeles`). Determines the 12:30 AM nightly schedule. |
+| `RECOVERY_KEY` | `None` | Optional | Auto-unlocks vault internally on container reboot using your 32-char Recovery Key (Web UI still requires login). |
+| `MASTER_PASSWORD` | `None` | Optional | Auto-unlocks vault internally on container reboot using Master Password (Web UI still requires login). |
+| `CONFIG_PATH` | `/app/config.yaml` | Optional | Path to AES-256 encrypted configuration file. |
+| `AUTH_PATH` | `/app/auth.json` | Optional | Path to authentication and Dual-Envelope credential storage. |
+| `CERT_DIR` | `/certs` | Optional | Root directory for managed certificate packs. |
+| `BACKUP_DIR` | `/backup` | Optional | Location for rolling historical backups of `config.yaml` (retains last 20). |
+| `LOG_FILE` | `/app/logs/cert_automate.log` | Optional | Path to application rotating log file. |
 
 ---
 
@@ -67,6 +79,10 @@ services:
       - ./logs:/app/logs
     environment:
       - FLASK_SECRET=GenerateASecretStringHere
+      - USE_HTTPS=true
+      - TZ=America/Los_Angeles
+      # Optional: Auto-unlock on container reboot for unattended automation
+      # - RECOVERY_KEY=Your32CharEmergencyRecoveryKey
 ```
 
 ### 2. Initialize & Launch
