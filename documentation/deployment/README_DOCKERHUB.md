@@ -37,7 +37,7 @@ CertAutomator speaks the language of your favorite local and enterprise services
 - **In-App Emergency Recovery Key Generator**: Authenticated users can generate or rotate their 32-character Emergency Recovery Key directly from Settings.
 - **Zero-Loss Password Reset**: Dual-Envelope Cryptography allows Master Passwords to be reset via `/api/recover` using a 32-character Emergency Recovery Key without losing vault configurations or SSL keys.
 - **Automatic Legacy Vault Migration**: Upgrades legacy single-password `auth.json` configurations to Dual-Envelope mode transparently on first login.
-- **Vulnerability Remediation**: Updated core PyPI packages (`urllib3>=2.7.0`, `cryptography>=47.0.0`, `setuptools>=75.0.0`) and base image dependencies to remediate published CVEs.
+- **Vulnerability Remediation & Dependency Bump**: Updated core PyPI packages (`cryptography>=50.0.2`, `urllib3>=2.8.0`, `certifi>=2026.10.19`, `requests>=2.34.2`, `setuptools>=84.0.0`, `gunicorn>=26.2.0`) and base image dependencies to remediate published CVEs.
 
 ---
 
