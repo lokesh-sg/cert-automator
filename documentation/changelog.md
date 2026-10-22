@@ -44,10 +44,15 @@
 ### Security & Dependency Hardening
 - **Recovery Key Never Logged**:
     - Eliminated plaintext Emergency Recovery Key from log files; confirmation notices now log non-sensitive event confirmations without exposing recovery keys.
-- **PyPI Dependency Security Bump**:
-    - Updated `urllib3` to `>=2.7.0` (Fixes CVE-2026-44432).
-    - Updated `cryptography` to `>=47.0.0` (Fixes CVE-2026-69249).
-    - Upgraded `setuptools` to `>=75.0.0` in Dockerfile to purge base image CVE.
+- **PyPI Dependency Security Bump (October 2026 Audit)**:
+    - Updated `cryptography` to `>=50.0.2` (Fixes CVE-2026-69249).
+    - Updated `urllib3` to `>=2.8.0` (Fixes CVE-2026-44432).
+    - Updated `certifi` to `>=2026.10.19`.
+    - Updated `requests` to `>=2.34.2`.
+    - Updated `docker` to `>=7.2.0`, `pyyaml` to `>=6.0.3`, `werkzeug` to `>=3.1.9`.
+    - Updated `flask-cors` to `>=6.0.5`, `websocket-client` to `>=1.9.2`, `Flask-WTF` to `>=1.3.0`.
+    - Updated `gunicorn` to `>=26.2.0`, `acme` to `>=5.8.0`.
+    - Upgraded `pip` to `>=26.2`, `setuptools` to `>=84.0.0`, `wheel` to `>=0.48.0` in Dockerfile.
 - **Dockerfile Hardening**:
     - Updated Debian Bookworm package management to use `apt-get dist-upgrade -y` and installed `ca-certificates` for system-level CVE remediation.
 

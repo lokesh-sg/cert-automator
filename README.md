@@ -100,7 +100,7 @@ For a full list of all supported environment variables, including unattended aut
 - **SSH Sudo Refinement**: Directly supplies sudo passwords via `sudo -S` when required, eliminating noisy false error logs.
 - **In-App Emergency Recovery Key Generator**: Authenticated users can generate or rotate their 32-character Emergency Recovery Key directly from Settings.
 - **Dual-Envelope Cryptography (Zero-Loss Recovery)**: Master Vault Key (`MVK`) architecture with independent password and recovery envelopes.
-- **Production Hardened**: Python 3.13-slim-bookworm base image with latest security updates (`cryptography>=47.0.0`, `urllib3>=2.7.0`, `setuptools>=75.0.0`).
+- **Production Hardened**: Python 3.13-slim-bookworm base image with latest security updates (`cryptography>=50.0.2`, `urllib3>=2.8.0`, `setuptools>=84.0.0`, `certifi>=2026.10.19`).
 - See [CHANGELOG.md](documentation/changelog.md) for full version history.
 
 ---

@@ -10,7 +10,7 @@ RUN apt-get update && apt-get dist-upgrade -y && \
 
 # Install python dependencies & upgrade build tools
 COPY app/requirements.txt .
-RUN pip install --no-cache-dir --upgrade "pip>=24.3" "setuptools>=75.0.0" "wheel" && \
+RUN pip install --no-cache-dir --upgrade "pip>=26.2" "setuptools>=84.0.0" "wheel>=0.48.0" && \
     pip install --no-cache-dir -r requirements.txt && \
     rm -rf /usr/local/lib/python3.13/site-packages/setuptools-70.3.0*.dist-info /usr/local/lib/python3.13/site-packages/setuptools-70.3.0*
 
